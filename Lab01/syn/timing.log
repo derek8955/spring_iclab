@@ -1,0 +1,174 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : SMC
+Version: Q-2019.12
+Date   : Wed May 18 13:27:58 2022
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: V_DS_1[0] (input port)
+  Endpoint: out_n[9] (output port)
+  Path Group: default
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  SMC                tsmc13_wl10           slow
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  input external delay                                    0.00       0.00 f
+  V_DS_1[0] (in)                                          0.00       0.00 f
+  U290/Y (NAND2X1)                                        0.24       0.24 r
+  U452/Y (NOR2BX4)                                        0.26       0.50 r
+  U410/Y (OR2X8)                                          0.16       0.66 r
+  U335/Y (AND2X2)                                         0.16       0.83 r
+  U291/Y (NAND3X1)                                        0.20       1.03 f
+  U379/Y (NAND2X4)                                        0.15       1.18 r
+  U364/Y (NAND2X8)                                        0.09       1.26 f
+  U285/Y (INVX8)                                          0.14       1.40 r
+  U357/Y (NAND2X4)                                        0.17       1.57 f
+  U424/Y (OA22XL)                                         0.50       2.07 f
+  U319/Y (CLKBUFX3)                                       0.30       2.37 f
+  U389/Y (NOR2X1)                                         0.29       2.67 r
+  U388/CO (ADDHX2)                                        0.23       2.90 r
+  U425/CO (ADDFHX2)                                       0.38       3.28 r
+  U412/CO (ADDFHX2)                                       0.20       3.48 r
+  U324/S (ADDFXL)                                         0.58       4.06 r
+  mult_131_2_G2/a[4] (SMC_DW_mult_uns_2)                  0.00       4.06 r
+  mult_131_2_G2/U57/Y (INVX3)                             0.21       4.28 f
+  mult_131_2_G2/U70/Y (NOR2X1)                            0.26       4.53 r
+  mult_131_2_G2/U75/S (CMPR42X1)                          0.73       5.26 f
+  mult_131_2_G2/U78/CO (ADDFHX2)                          0.40       5.67 f
+  mult_131_2_G2/U71/CO (ADDFHX2)                          0.23       5.90 f
+  mult_131_2_G2/U67/CO (ADDFX2)                           0.35       6.25 f
+  mult_131_2_G2/U66/CO (ADDFX2)                           0.38       6.63 f
+  mult_131_2_G2/U72/S (ADDFHX4)                           0.34       6.98 r
+  mult_131_2_G2/product[8] (SMC_DW_mult_uns_2)            0.00       6.98 r
+  div_131_G2/a[8] (SMC_DW_div_uns_4)                      0.00       6.98 r
+  div_131_G2/U16/Y (AND2X2)                               0.42       7.40 r
+  div_131_G2/U23/Y (INVX1)                                0.17       7.57 f
+  div_131_G2/U14/Y (NAND2X1)                              0.19       7.76 r
+  div_131_G2/U18/Y (AND2X2)                               0.28       8.05 r
+  div_131_G2/U33/Y (OAI2BB1X4)                            0.29       8.34 r
+  div_131_G2/U19/Y (MXI2X4)                               0.23       8.57 f
+  div_131_G2/U11/Y (OAI2BB1X4)                            0.26       8.83 f
+  div_131_G2/U10/Y (MXI2X4)                               0.21       9.04 f
+  div_131_G2/U13/Y (OAI2BB1X4)                            0.32       9.36 f
+  div_131_G2/U27/Y (INVX1)                                0.23       9.58 r
+  div_131_G2/U25/Y (NAND2X2)                              0.11       9.69 f
+  div_131_G2/U17/Y (AND2X4)                               0.19       9.89 f
+  div_131_G2/U31/Y (OAI2BB1X4)                            0.21      10.10 f
+  div_131_G2/U36/Y (MXI2X1)                               0.30      10.40 r
+  div_131_G2/U22/Y (BUFX6)                                0.20      10.59 r
+  div_131_G2/U9/Y (OAI2BB1X4)                             0.28      10.88 r
+  div_131_G2/U8/Y (MXI2X4)                                0.24      11.12 f
+  div_131_G2/U30/Y (OAI2BB1X4)                            0.31      11.42 f
+  div_131_G2/U7/Y (MXI2X4)                                0.22      11.65 f
+  div_131_G2/U6/Y (OAI2BB1X4)                             0.24      11.89 f
+  div_131_G2/u_div/u_mx_PartRem_0_1_0/Y (MX2XL)           0.40      12.29 r
+  div_131_G2/U15/Y (AO21X1)                               0.38      12.67 r
+  div_131_G2/quotient[0] (SMC_DW_div_uns_4)               0.00      12.67 r
+  sort/in1[0] (Sort)                                      0.00      12.67 r
+  sort/U277/Y (AOI2BB1X1)                                 0.18      12.85 f
+  sort/U474/Y (AO22X4)                                    0.22      13.07 f
+  sort/U300/Y (AOI221X4)                                  0.48      13.55 r
+  sort/U299/Y (OAI21X4)                                   0.07      13.62 f
+  sort/U727/Y (OAI211X1)                                  0.26      13.88 r
+  sort/U12/Y (AND2X8)                                     0.21      14.10 r
+  sort/U6/Y (CLKBUFX20)                                   0.18      14.28 r
+  sort/U115/Y (OAI22X1)                                   0.17      14.44 f
+  sort/U114/Y (BUFX8)                                     0.19      14.64 f
+  sort/U21/Y (NAND2X8)                                    0.07      14.71 r
+  sort/U328/Y (OAI222X2)                                  0.26      14.97 f
+  sort/U160/Y (OAI222X4)                                  0.58      15.55 r
+  sort/U52/Y (OAI21X4)                                    0.08      15.63 f
+  sort/U47/Y (OAI211X2)                                   0.14      15.77 r
+  sort/U130/Y (AND2X8)                                    0.38      16.16 r
+  sort/U156/Y (INVX20)                                    0.18      16.33 f
+  sort/U640/Y (OAI22X1)                                   0.28      16.61 r
+  sort/U377/Y (INVX3)                                     0.21      16.82 f
+  sort/U191/Y (AOI2BB1X1)                                 0.32      17.15 f
+  sort/U763/Y (AO22X1)                                    0.37      17.52 f
+  sort/U280/Y (AOI221X1)                                  0.40      17.91 r
+  sort/U308/Y (OAI21X2)                                   0.14      18.06 f
+  sort/U642/Y (OAI211X1)                                  0.26      18.31 r
+  sort/U169/Y (CLKAND2X12)                                0.37      18.68 r
+  sort/U170/Y (INVX20)                                    0.16      18.84 f
+  sort/U123/Y (OAI22X2)                                   0.21      19.06 r
+  sort/U174/Y (BUFX4)                                     0.22      19.28 r
+  sort/U19/Y (NAND2X6)                                    0.09      19.37 f
+  sort/U419/Y (OAI222X2)                                  0.35      19.72 r
+  sort/U134/Y (OAI222X4)                                  0.43      20.15 f
+  sort/U133/Y (OAI21X4)                                   0.07      20.22 r
+  sort/U736/Y (OAI211X2)                                  0.16      20.38 f
+  sort/U213/Y (AND2X6)                                    0.23      20.61 f
+  sort/U286/Y (INVX20)                                    0.14      20.75 r
+  sort/U83/Y (INVX20)                                     0.12      20.88 f
+  sort/U62/Y (OA22XL)                                     0.51      21.38 f
+  sort/U61/Y (BUFX6)                                      0.21      21.60 f
+  sort/U188/Y (NAND2X1)                                   0.26      21.86 r
+  sort/U172/Y (OAI222X4)                                  0.43      22.29 f
+  sort/U171/Y (OAI222X2)                                  0.32      22.61 r
+  sort/U93/Y (OAI21X4)                                    0.14      22.75 f
+  sort/U212/Y (OAI211X1)                                  0.24      22.98 r
+  sort/U43/Y (AND2X8)                                     0.18      23.17 r
+  sort/U36/Y (INVX4)                                      0.10      23.27 f
+  sort/U33/Y (BUFX4)                                      0.16      23.43 f
+  sort/U512/Y (OAI22X1)                                   0.29      23.72 r
+  sort/U318/Y (BUFX6)                                     0.21      23.93 r
+  sort/U57/Y (NAND2X8)                                    0.08      24.01 f
+  sort/U394/Y (OAI222X2)                                  0.30      24.31 r
+  sort/U56/Y (BUFX6)                                      0.18      24.49 r
+  sort/U367/Y (OAI222X2)                                  0.21      24.70 f
+  sort/U368/Y (OAI21X2)                                   0.20      24.90 r
+  sort/U743/Y (OAI211X2)                                  0.17      25.07 f
+  sort/U178/Y (CLKAND2X8)                                 0.23      25.31 f
+  sort/U137/Y (CLKINVX16)                                 0.12      25.43 r
+  sort/U136/Y (INVX20)                                    0.09      25.52 f
+  sort/U673/Y (OAI22X1)                                   0.30      25.82 r
+  sort/out2[1] (Sort)                                     0.00      25.82 r
+  U336/Y (AO22X4)                                         0.28      26.10 r
+  add_3_root_add_0_root_add_150_2/B[1] (SMC_DW01_add_3)
+                                                          0.00      26.10 r
+  add_3_root_add_0_root_add_150_2/U1_1/CO (ADDFHX2)       0.28      26.38 r
+  add_3_root_add_0_root_add_150_2/U1_2/CO (ADDFHX2)       0.21      26.59 r
+  add_3_root_add_0_root_add_150_2/U1_3/S (ADDFHX2)        0.33      26.92 r
+  add_3_root_add_0_root_add_150_2/SUM[3] (SMC_DW01_add_3)
+                                                          0.00      26.92 r
+  add_1_root_add_0_root_add_150_2/B[3] (SMC_DW01_add_1)
+                                                          0.00      26.92 r
+  add_1_root_add_0_root_add_150_2/U1_3/S (ADDFHX2)        0.32      27.24 f
+  add_1_root_add_0_root_add_150_2/SUM[3] (SMC_DW01_add_1)
+                                                          0.00      27.24 f
+  add_0_root_add_0_root_add_150_2/B[3] (SMC_DW01_add_0)
+                                                          0.00      27.24 f
+  add_0_root_add_0_root_add_150_2/U1_3/CO (ADDFXL)        0.72      27.96 f
+  add_0_root_add_0_root_add_150_2/U1_4/CO (ADDFX2)        0.40      28.36 f
+  add_0_root_add_0_root_add_150_2/U1_5/CO (ADDFXL)        0.50      28.86 f
+  add_0_root_add_0_root_add_150_2/U1_6/CO (ADDFX2)        0.40      29.27 f
+  add_0_root_add_0_root_add_150_2/U1_7/CO (ADDFHX2)       0.26      29.53 f
+  add_0_root_add_0_root_add_150_2/U1_8/CO (ADDFHX4)       0.21      29.74 f
+  add_0_root_add_0_root_add_150_2/U1_9/Y (XOR3X2)         0.24      29.97 r
+  add_0_root_add_0_root_add_150_2/SUM[9] (SMC_DW01_add_0)
+                                                          0.00      29.97 r
+  out_n[9] (out)                                          0.00      29.97 r
+  data arrival time                                                 29.97
+
+  max_delay                                              30.00      30.00
+  output external delay                                   0.00      30.00
+  data required time                                                30.00
+  --------------------------------------------------------------------------
+  data required time                                                30.00
+  data arrival time                                                -29.97
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.03
+
+
+1

@@ -1,0 +1,62 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : SD
+Version: Q-2019.12
+Date   : Wed Jun 15 22:55:17 2022
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: out_cnt_reg[1]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: out_reg[0] (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  SD                 tsmc13_wl10           slow
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.50       0.50
+  out_cnt_reg[1]/CK (DFFSX2)               0.00       0.50 r
+  out_cnt_reg[1]/Q (DFFSX2)                0.54       1.04 f
+  U7582/Y (INVX3)                          0.11       1.15 r
+  U11143/Y (NAND2BXL)                      0.32       1.47 r
+  U11144/Y (CLKINVX1)                      0.40       1.87 f
+  U7887/Y (BUFX2)                          0.40       2.27 f
+  U7583/Y (AOI221XL)                       0.57       2.84 r
+  U8743/Y (OA22XL)                         0.43       3.27 r
+  U8750/Y (OAI221X4)                       0.41       3.67 f
+  U7584/Y (CLKINVX1)                       0.30       3.97 r
+  U9357/Y (AND3XL)                         0.78       4.75 r
+  U9919/Y (CLKBUFX3)                       0.71       5.46 r
+  U7291/Y (AO22XL)                         0.44       5.90 r
+  U9620/Y (NOR4X1)                         0.19       6.10 f
+  U7755/Y (OAI22XL)                        0.54       6.64 r
+  U10252/Y (NOR4X1)                        0.26       6.90 f
+  U10251/Y (NOR2X1)                        0.23       7.14 r
+  out_reg[0]/D (DFFRX1)                    0.00       7.14 r
+  data arrival time                                   7.14
+
+  clock clk (rise edge)                    7.00       7.00
+  clock network delay (ideal)              0.50       7.50
+  clock uncertainty                       -0.10       7.40
+  out_reg[0]/CK (DFFRX1)                   0.00       7.40 r
+  library setup time                      -0.26       7.14
+  data required time                                  7.14
+  -----------------------------------------------------------
+  data required time                                  7.14
+  data arrival time                                  -7.14
+  -----------------------------------------------------------
+  slack (MET)                                         0.00
+
+
+1

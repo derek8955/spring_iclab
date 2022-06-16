@@ -1,0 +1,240 @@
+ncverilog: 15.20-s039: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+TOOL:	ncverilog	15.20-s039: Started on May 18, 2022 at 14:02:30 CST
+ncverilog
+	TESTBED.v
+	+define+RTL
+file: TESTBED.v
+	module worklib.SME:v
+		errors: 0, warnings: 0
+	module worklib.Is_EQ:v
+		errors: 0, warnings: 0
+	module worklib.PATTERN:v
+		errors: 0, warnings: 0
+	module worklib.TESTBED:v
+		errors: 0, warnings: 0
+		Caching library 'worklib' ....... Done
+	Elaborating the design hierarchy:
+	Building instance overlay tables: .................... Done
+	Generating native compiled code:
+		worklib.Is_EQ:v <0x60a57ef7>
+			streams:   2, words:  1336
+		worklib.PATTERN:v <0x4fe36bc6>
+			streams:  15, words: 27954
+		worklib.SME:v <0x784375ff>
+			streams:  94, words: 91973
+		worklib.TESTBED:v <0x782078f1>
+			streams:   1, words:   719
+	Building instance specific data structures.
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		                  Instances  Unique
+		Modules:                275       4
+		Registers:              325      54
+		Scalar wires:           825       -
+		Vectored wires:         548       -
+		Always blocks:          358      21
+		Initial blocks:           7       7
+		Cont. assignments:      549      11
+		Pseudo assignments:     544       2
+		Simulation timescale:  10ps
+	Writing initial simulation snapshot: worklib.TESTBED:v
+Loading snapshot worklib.TESTBED:v .................... Done
+SVSEED default: 1
+*Verdi* Loading libsscore_ius152.so
+ncsim> source /usr/cad/cadence/INCISIV/cur/tools/inca/files/ncsimrc
+ncsim> run
+Open failed on file "../00_TESTBED/pat.txt". No such file or directory
+	a = $fscanf(pat_file,"%d\n",PATNUM);
+	                   |
+ncsim: *E,SYSFMT (./PATTERN.v,76|20): $fscanf --  Null file descriptor.
+FSDB Dumper for IUS, Release Verdi_Q-2020.03, Linux, 02/09/2020
+(C) 1996 - 2020 by Synopsys, Inc.
+*Verdi* : Create FSDB file 'SME.fsdb'
+*Verdi* : Begin traversing the scopes, layer (0).
+*Verdi* : Enable +mda dumping.
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.clk(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.rst_n(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.isstring(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.ispattern(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.chardata(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.out_valid(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.match(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.match_index(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.match(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.match_index(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.out_valid(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.i(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.j(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.f_isstring(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.f_ispattern(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.String(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.Pattern(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.head_str(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.lnth_ptn(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_star(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.pos_star(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.match_table(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_match_array(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.rev_is_match_array(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.match_pos(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.rev_match_pos(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_state_match(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_ptn_head_start(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.next_match_index(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.clk(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.rst_n(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.chardata(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.isstring(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.ispattern(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_match(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_match_w_star(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_match_wo_star(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.real_rev_match_pos(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.lnth_before_star(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_equivalent(114)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.and_table(114)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.rev_and_table(114)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[0].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[0].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[0].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[1].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[1].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[1].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[2].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[2].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[2].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[3].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[3].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[3].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[4].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[4].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[4].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[5].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[5].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[5].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[6].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[6].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[6].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[7].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[7].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[7].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[8].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[8].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[8].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[9].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[9].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[9].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[10].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[10].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[10].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[11].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[11].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[11].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[12].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[12].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[12].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[13].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[13].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[13].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[14].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[14].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[14].func.ptn(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[15].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[15].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[15].func.ptn(36)
+*Verdi* WARNING: The above messages are printed 50 times. No more similar message will be printed out.
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[16].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[16].func.str(36)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[17].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[18].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[19].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[20].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[21].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[22].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[23].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[24].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[25].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[26].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[27].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[28].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[29].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[30].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[31].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[32].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[0].genblk1[33].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[1].genblk1[0].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[1].genblk1[1].func.out(48)
+*Verdi* WARNING: The above messages are printed 50 times. No more similar message will be printed out.
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.genblk9[1].genblk1[2].func.out(48)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.PATNUM(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.pattern_num(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.total_pat(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.total_cycles(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.patcount(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.cycles(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.a(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.bb(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.c(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.i(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.k(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.p(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.pat_file(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.out(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.out2(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.color_stage(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.color(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.r(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.g(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.b(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.scnum(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.pcnum(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.gap(25)
+*Verdi* : End of traversing.
+*Verdi* : Begin traversing the scopes, layer (0).
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.i(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.j(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.String(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.Pattern(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.match_table(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_match_array(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.rev_is_match_array(116)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.is_equivalent(114)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.and_table(114)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_SME.rev_and_table(114)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.PATNUM(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.pattern_num(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.total_pat(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.total_cycles(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.patcount(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.cycles(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.a(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.bb(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.c(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.i(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.k(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.p(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.pat_file(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.out(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.out2(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.color_stage(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.color(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.r(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.g(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.b(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.scnum(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.pcnum(25)
+*Verdi* WARNING: [NoReadAccess][FilterOut]Name:TESTBED.U_PATTERN.gap(25)
+*Verdi* WARNING: The above messages are printed 50 times. No more similar message will be printed out.
+*Verdi* : End of traversing.
+----------------------------------------------------------------------------------------------------------------------
+                                                  Congratulations!                						             
+                                           You have passed all patterns!          						             
+                                                                                 						             
+                                        Your execution cycles   =     0 cycles      						             
+                                        Your clock period       = 5.0 ns        					                 
+                                        Total latency           = 0.0 ns             						         
+----------------------------------------------------------------------------------------------------------------------
+Simulation complete via $finish(1) at time 1010 NS + 0
+./PATTERN.v:238 $finish;	
+ncsim> exit
+TOOL:	ncverilog	15.20-s039: Exiting on May 18, 2022 at 14:02:33 CST  (total: 00:00:03)

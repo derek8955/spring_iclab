@@ -1,0 +1,4 @@
+Command Line: /usr/cad/synopsys/verdi/cur/platform/LINUXAMD64/bin/Novas -nWave
+uname(Linux islabx6 2.6.32-642.el6.x86_64 #1 SMP Tue May 10 17:27:01 UTC 2016 x86_64)
+Failed to delete /home/t107360223/Desktop/zhan_iclab/Lab3/sim/BSSLib.lib++
+au time 15145.294795 76.594356 155.020433 delta 290369536 290369536 total 730812416 730812416
