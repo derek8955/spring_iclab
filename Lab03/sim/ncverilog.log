@@ -1,30 +1,29 @@
 ncverilog: 15.20-s039: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
-TOOL:	ncverilog	15.20-s039: Started on Jun 15, 2022 at 22:52:55 CST
+TOOL:	ncverilog	15.20-s039: Started on Jun 19, 2022 at 22:20:47 CST
 ncverilog
 	TESTBED.v
 	+define+RTL
+Recompiling... reason: file './PATTERN.v' is newer than expected.
+	expected: Sun Jun 19 22:18:01 2022
+	actual:   Sun Jun 19 22:20:36 2022
 file: TESTBED.v
-	module worklib.SD:v
-		errors: 0, warnings: 0
+    $fscanf(pat_file, "%d\n", PATNUM);
+          |
+ncvlog: *W,NOSYST (PATTERN.v,64|10): System function '$fscanf' invoked as a task. Return value will be ignored.
+(`include file: PATTERN.v line 64, file: TESTBED.v line 3)
 	module worklib.PATTERN:v
-		errors: 0, warnings: 0
+		errors: 0, warnings: 1
 module SD(
         |
 ncvlog: *W,RECOME (./../src/SD.v,12|8): recompiling design unit worklib.SD:v.
 	First compiled from line 12 of ../src/SD.v.
 (`include file: ./../src/SD.v line 12, file: TESTBED.v line 5)
-	module worklib.TESTBED:v
-		errors: 0, warnings: 0
 		Caching library 'worklib' ....... Done
 	Elaborating the design hierarchy:
 	Building instance overlay tables: .................... Done
 	Generating native compiled code:
-		worklib.PATTERN:v <0x7c923502>
-			streams:  15, words: 30687
-		worklib.SD:v <0x70b344fa>
-			streams:  41, words: 33033
-		worklib.TESTBED:v <0x3cbe0a25>
-			streams:   1, words:   588
+		worklib.PATTERN:v <0x2445eda3>
+			streams:  15, words: 29662
 	Building instance specific data structures.
 	Loading native compiled code:     .................... Done
 	Design hierarchy summary:
@@ -2118,11 +2117,11 @@ FSDB Dumper for IUS, Release Verdi_Q-2020.03, Linux, 02/09/2020
                                                   Congratulations!                                                    
                                            You have passed all patterns!                                              
                                                                                                                       
-                                        Your execution cycles   = 27812 cycles                                          
+                                        Your execution cycles   =    26 cycles                                          
                                         Your clock period       = 7.0 ns                                             
-                                        Total latency           = 208761.0 ns                                             
+                                        Total latency           = 14259.0 ns                                             
 ----------------------------------------------------------------------------------------------------------------------
 Simulation complete via $finish(1) at time 1491128500 PS + 0
-./PATTERN.v:282 $finish;    
+./PATTERN.v:279 $finish;    
 ncsim> exit
-TOOL:	ncverilog	15.20-s039: Exiting on Jun 15, 2022 at 22:53:06 CST  (total: 00:00:11)
+TOOL:	ncverilog	15.20-s039: Exiting on Jun 19, 2022 at 22:20:58 CST  (total: 00:00:11)

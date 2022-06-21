@@ -1,2 +1,2 @@
-1654872243 /home/t107360223/Desktop/ICLAB/Lab3/sim/tsmc13_neg.v
-1654872243 /home/t107360223/Desktop/ICLAB/Lab3/sim/TESTBED.v
+1655391237 /home/t107360223/Desktop/ICLAB/Lab03/sim/tsmc13_neg.v
+1655391237 /home/t107360223/Desktop/ICLAB/Lab03/sim/TESTBED.v

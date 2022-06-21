@@ -67,11 +67,8 @@ reg [3:0] out_cnt;
 always@( posedge clk or negedge rst_n ) 
 begin
 	if ( !rst_n ) in_cnt <= 7'd0 ;
-	else 
-	begin
-		if ( in_valid == 1'b1 )	in_cnt <= in_cnt + 1 ;
-		else if ( nx_state == OUTPUT ) in_cnt <= 7'd0 ;
-	end
+	else if ( in_valid ) in_cnt <= in_cnt + 1 ;
+	else if ( nx_state == OUTPUT ) in_cnt <= 7'd0 ;
 end
 
 always@( posedge clk or negedge rst_n ) 
@@ -83,7 +80,7 @@ begin
 	end
 	else if ( nx_state == IDLE ) 
 	begin
-		if ( in_valid == 1'b1 ) 
+		if ( in_valid ) 
 		begin
 			grid[8][8] <= in ;			
 			for( i=0 ; i<9 ; i=i+1 )	
@@ -153,7 +150,7 @@ end
 
 generate
 	for( zdx=1 ; zdx<10 ; zdx=zdx+1 ) 
-		assign IS_exist[zdx] = ( grid[space_x[space_cnt]][space_y[space_cnt]] >= zdx ) || IS_exist_row[zdx][space_x[space_cnt]] || IS_exist_col[zdx][space_y[space_cnt]] || IS_exist_square[zdx][ cur_square ];*+
+		assign IS_exist[zdx] = ( grid[space_x[space_cnt]][space_y[space_cnt]] >= zdx ) || IS_exist_row[zdx][space_x[space_cnt]] || IS_exist_col[zdx][space_y[space_cnt]] || IS_exist_square[zdx][ cur_square ];
 		
 endgenerate
 
@@ -191,12 +188,14 @@ generate
 										    ( grid[3][jdx] == zdx ) || ( grid[4][jdx] == zdx) || ( grid[5][jdx] == zdx) ||
 										    ( grid[6][jdx] == zdx ) || ( grid[7][jdx] == zdx) || ( grid[8][jdx] == zdx);
 		for( idx=0 ; idx<7 ; idx=idx+3 ) // 0、3、6
-			begin
-				for( jdx=0 ; jdx<7 ; jdx=jdx+3 ) // 0、3、6
-					assign IS_exist_square[ zdx ][ idx+jdx/3 ] = ( grid[idx][jdx] == zdx ) || ( grid[idx][jdx+1] == zdx ) || ( grid[idx][jdx+2] == zdx ) ||
-														         ( grid[idx+1][jdx] == zdx ) || ( grid[idx+1][jdx+1] == zdx ) || ( grid[idx+1][jdx+2] == zdx ) ||
-														         ( grid[idx+2][jdx] == zdx ) || ( grid[idx+2][jdx+1] == zdx ) || ( grid[idx+2][jdx+2] == zdx );
-			end
+		begin
+			for( jdx=0 ; jdx<7 ; jdx=jdx+3 ) // 0、3、6
+				assign IS_exist_square[ zdx ][ idx+jdx/3 ] = ( grid[idx][jdx] == zdx ) || ( grid[idx][jdx+1] == zdx ) || 
+				                                             ( grid[idx][jdx+2] == zdx ) || ( grid[idx+1][jdx] == zdx ) || 
+															 ( grid[idx+1][jdx+1] == zdx ) || ( grid[idx+1][jdx+2] == zdx ) ||
+														     ( grid[idx+2][jdx] == zdx ) || ( grid[idx+2][jdx+1] == zdx ) || 
+															 ( grid[idx+2][jdx+2] == zdx );
+		end
 	end
 endgenerate
 
@@ -257,7 +256,7 @@ begin
 	if ( !rst_n ) out <= 4'd0;
 	else if ( nx_state == OUTPUT) 
 	begin
-		if ( IS_legal == 1'b0 ) out <= 4'd1 0;
+		if ( IS_legal == 1'b0 ) out <= 4'd10;
 		else out <= grid[ space_x[out_cnt] ][ space_y[out_cnt] ];
 	end
 	else out <= 4'd0;

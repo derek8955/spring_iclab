@@ -60,8 +60,8 @@ initial clk = 0 ;
 //  initial
 //================================================================
 initial begin
-    pat_file = $fopen("./pat_2011.txt", "r");
-    a = $fscanf(pat_file, "%d\n", PATNUM);
+    pat_file = $fopen("pat_2011.txt", "r");
+    $fscanf(pat_file, "%d\n", PATNUM);
     // 
     in_valid = 0 ;
     in = 4'bx ;
@@ -145,17 +145,14 @@ task check_ans ; begin
         else begin
             cycles = 0 ;
             while(out_valid===1) begin
-				
                 // $display("cycles = %d", cycles);
                 if (cycles!==0) c = $fscanf(pat_file, "%d\n", golden_out);
                 cycles = cycles + 1 ;
-
                 if (out!==golden_out) begin
                     fail;
-                    $display("%d, %d",out, golden_out);
-					// Spec. 8
+                    // Spec. 8
                     // When out_valid is pulled up and there exists a solution for the grid, out should be correct, and out_valid is limited to be high for 15 cycles. 
-					$display ("--------------------------------------------------------------------------------------------------------------------------------------------");
+                    $display ("--------------------------------------------------------------------------------------------------------------------------------------------");
                     $display ("                                                                SPEC 8 FAIL!                                                                ");
                     $display ("--------------------------------------------------------------------------------------------------------------------------------------------");
                     repeat(5)  @(negedge clk);
@@ -163,7 +160,6 @@ task check_ans ; begin
                 end
                 if (cycles>15) begin
                     fail;
-					$display(cycles);
                     // Spec. 8
                     // When out_valid is pulled up and there exists a solution for the grid, out should be correct, and out_valid is limited to be high for 15 cycles. 
                     $display ("--------------------------------------------------------------------------------------------------------------------------------------------");
@@ -262,8 +258,9 @@ task reset_task ; begin
 end endtask
 
 task delay_task ; begin
-    gap = $urandom_range(1, 5) ;
-    repeat(gap) @(negedge clk);
+   gap = $urandom_range(1, 5) ;
+   repeat(gap) @(negedge clk);
+
 end endtask
 //================================================================
 //  pass/fail task
