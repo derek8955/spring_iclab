@@ -31,12 +31,12 @@ module NN(
 	out
 );
 //================================================================
-//  parameters
-//================================================================
 // IEEE floating point paramenters
+//================================================================
 parameter inst_sig_width = 23;
 parameter inst_exp_width = 8;
 parameter inst_ieee_compliance = 0;
+
 parameter inst_total_width = inst_sig_width + inst_exp_width;
 
 //================================================================
@@ -71,12 +71,11 @@ reg cur_stage [0:9];
 wire [inst_total_width:0] sw_1[0:11];
 reg [inst_total_width:0] sw_1_r[0:11];
 
-wire [inst_total_width:0] s2[0:2];
+wire [inst_total_width:0] s2_w[0:2];
 reg  [inst_total_width:0] s2_r[0:2];
-wire [inst_total_width:0] y1_w[0:2];
 reg  [inst_total_width:0] y1_r[0:2];
 
-wire [inst_total_width:0] sw_2[0:2];
+wire [inst_total_width:0] sw_2_w[0:2];
 reg  [inst_total_width:0] sw_2_r[0:2];
 
 wire [inst_total_width:0] y2;
@@ -86,7 +85,6 @@ wire [inst_total_width:0] delta2;
 reg  [inst_total_width:0] delta2_r;
 wire [inst_total_width:0] w2_delta2_w[0:2];
 reg  [inst_total_width:0] w2_delta2_r[0:2];
-wire [inst_total_width:0] delta1_w[0:2];
 reg  [inst_total_width:0] delta1_r[0:2];
 
 //	UPDATE
@@ -110,9 +108,9 @@ wire [inst_total_width:0] new_w2[0:2];
 generate 
 for( idx=0 ; idx<4 ;idx=idx+1 )
 begin
-	fp_mult FOR_MULT_1_1( .a( s1_r[idx] ), .b( w1_r[idx] )  , .z( sw_1[idx] )   );
-	fp_mult FOR_MULT_1_2( .a( s1_r[idx] ), .b( w1_r[idx+4] ), .z( sw_1[idx+4] ) );
-	fp_mult FOR_MULT_1_3( .a( s1_r[idx] ), .b( w1_r[idx+8] ), .z( sw_1[idx+8] ) );
+	fp_MULT FOR_MULT_1_1( .a( w1_r[idx] ),   .b( s1_r[idx] ), .z( sw_1[idx] ) );
+	fp_MULT FOR_MULT_1_2( .a( w1_r[idx+4] ), .b( s1_r[idx] ), .z( sw_1[idx+4] ) );
+	fp_MULT FOR_MULT_1_3( .a( w1_r[idx+8] ), .b( s1_r[idx] ), .z( sw_1[idx+8] ) );
 end
 endgenerate
 
@@ -128,22 +126,19 @@ begin
 	end
 end
 
-fp_sum4 FOR_ADDER_1_1( .a( sw_1_r[0] ), .b( sw_1_r[1] ), .c( sw_1_r[2] ), .d( sw_1_r[3] ), .z( s2[0] ) );
-fp_sum4 FOR_ADDER_1_2( .a( sw_1_r[4] ), .b( sw_1_r[5] ), .c( sw_1_r[6] ), .d( sw_1_r[7] ), .z( s2[1] ) );
-fp_sum4 FOR_ADDER_1_3( .a( sw_1_r[8] ), .b( sw_1_r[9] ), .c( sw_1_r[10] ), .d( sw_1_r[11] ), .z( s2[2] ) );
+generate
+fp_SUM4 FOR_ADDER_1_1( .a( sw_1_r[0] ), .b( sw_1_r[1] ), .c( sw_1_r[2] ), .d( sw_1_r[3] ), .z( s2_w[0] ) );
+fp_SUM4 FOR_ADDER_1_2( .a( sw_1_r[4] ), .b( sw_1_r[5] ), .c( sw_1_r[6] ), .d( sw_1_r[7] ), .z( s2_w[1] ) );
+fp_SUM4 FOR_ADDER_1_3( .a( sw_1_r[8] ), .b( sw_1_r[9] ), .c( sw_1_r[10] ), .d( sw_1_r[11] ), .z( s2_w[2] ) );
+endgenerate
 
 generate
 for( idx=0 ; idx<3 ; idx=idx+1 )
 	always@( posedge clk or negedge rst_n )
 	begin
-		if (!rst_n) s2_r[idx] <= 0 ;
-		else if( cur_stage[4] ) s2_r[idx] <= s2[idx];
+		if ( !rst_n ) s2_r[idx] <= 0 ;
+		else if( cur_stage[4] ) s2_r[idx] <= s2_w[idx];
 	end	
-endgenerate
-
-generate
-for( idx=0 ; idx<3 ; idx=idx+1 )
-	assign y1_w[idx] = ( s2[idx][31] ) ? 0 : s2[idx];
 endgenerate
 
 generate
@@ -151,13 +146,13 @@ for( idx=0 ; idx<3 ; idx=idx+1 )
 	always@( posedge clk or negedge rst_n )
 	begin
 		if ( !rst_n ) y1_r[idx] <= 0 ;
-		else if( cur_stage[4] ) y1_r[idx] <= y1_w[idx];
+		else if( cur_stage[4] ) y1_r[idx] <= ( s2_w[idx][inst_total_width] ) ? 0 : s2_w[idx];
 	end
 endgenerate
 
 generate
 for( idx=0 ; idx<3 ; idx=idx+1 )
-	fp_mult MULT_h2( .a(w2_r[idx]), .b(y1_r[idx]), .z(sw_2[idx]) );
+	fp_MULT MULT_h2( .a( w2_r[idx] ), .b( y1_r[idx] ), .z( sw_2_w[idx] ) );
 endgenerate
 
 generate
@@ -165,22 +160,22 @@ for( idx=0 ; idx<3 ; idx=idx+1 )
 	always@( posedge clk or negedge rst_n )
 	begin
 		if ( !rst_n ) sw_2_r[idx] <= 0 ;
-		else if( cur_stage[5] ) sw_2_r[idx] <= sw_2[idx];
+		else if( cur_stage[5] ) sw_2_r[idx] <= sw_2_w[idx];
 	end	
 endgenerate
 
-fp_sum3 SUM3_h2( .a( sw_2_r[0] ), .b( sw_2_r[1] ), .c( sw_2_r[2] ), .z( y2 ) );
+fp_SUM3 SUM3_h2( .a( sw_2_r[0] ), .b( sw_2_r[1] ), .c( sw_2_r[2] ), .z( y2 ) );
 
 always@( posedge clk or negedge rst_n )
 begin
 	if ( !rst_n ) y2_r <= 0 ;
 	else if( cur_stage[6] ) y2_r <= y2;
 end
+
 //================================================================
 //	BACKWORD
 //================================================================
-
-fp_sub SUB_delta2( .a(y2_r), .b(to_r), .z(delta2) );
+fp_SUB SUB_delta2( .a(y2_r), .b(to_r), .z(delta2) );
 
 always@( posedge clk or negedge rst_n )
 begin
@@ -190,7 +185,7 @@ end
 
 generate
 for( idx=0 ; idx<3 ; idx=idx+1 )
-	fp_mult MULT_w2_delta2( .a(w2_r[idx]), .b(delta2_r), .z(w2_delta2_w[idx]) );
+	fp_MULT MULT_w2_delta2( .a( w2_r[idx] ), .b( delta2_r ), .z( w2_delta2_w[idx] ) );
 endgenerate
 
 generate
@@ -204,15 +199,10 @@ endgenerate
 
 generate
 for( idx=0 ; idx<3 ; idx=idx+1 )
-	assign delta1_w[idx] = ( s2[idx][31] ) ? 0 : w2_delta2_r[idx] ;	
-endgenerate
-
-generate
-for( idx=0 ; idx<3 ; idx=idx+1 )
 	always@( posedge clk or negedge rst_n )
 	begin
 		if ( !rst_n ) delta1_r[idx] <= 0 ;
-		else if( cur_stage[9] ) delta1_r[idx] <= delta1_w[idx] ;
+		else if( cur_stage[9] ) delta1_r[idx] <= ( s2_w[idx][inst_total_width] ) ? 0 : w2_delta2_r[idx];
 	end	
 endgenerate
 
@@ -221,7 +211,7 @@ endgenerate
 //================================================================
 generate
 for( idx=0 ; idx<4 ; idx=idx+1 )
-	fp_mult MULT_lrn_dp( .a(LEARNING_RATE), .b(s1_r[idx]), .z(learn_s1[idx]) );
+	fp_MULT MULT_lrn_dp( .a( LEARNING_RATE ), .b( s1_r[idx] ), .z( learn_s1[idx] ) );
 endgenerate
 
 generate
@@ -235,7 +225,7 @@ endgenerate
 
 generate
 for( idx=0 ; idx<3 ; idx=idx+1 )
-	fp_mult MULT_lrn_y1( .a( LEARNING_RATE ), .b( y1_r[idx] ), .z( learn_s2[idx] ) );
+	fp_MULT MULT_lrn_y1( .a( LEARNING_RATE ), .b( y1_r[idx] ), .z( learn_s2[idx] ) );
 endgenerate
 
 generate
@@ -250,9 +240,9 @@ endgenerate
 generate
 for( idx=0 ; idx<4 ; idx=idx+1 ) 
 begin
-	fp_mult MULT_fix_w1_0( .a( learn_s1_r[idx] ), .b( delta1_r[0] ), .z( pre_new_w1_1[idx] ) );
-	fp_mult MULT_fix_w1_1( .a( learn_s1_r[idx] ), .b( delta1_r[1] ), .z( pre_new_w1_2[idx] ) );
-	fp_mult MULT_fix_w1_2( .a( learn_s1_r[idx] ), .b( delta1_r[2] ), .z( pre_new_w1_3[idx] ) );
+	fp_MULT MULT_fix_w1_0( .a( learn_s1_r[idx] ), .b( delta1_r[0] ), .z( pre_new_w1_1[idx] ) );
+	fp_MULT MULT_fix_w1_1( .a( learn_s1_r[idx] ), .b( delta1_r[1] ), .z( pre_new_w1_2[idx] ) );
+	fp_MULT MULT_fix_w1_2( .a( learn_s1_r[idx] ), .b( delta1_r[2] ), .z( pre_new_w1_3[idx] ) );
 end	
 endgenerate
 
@@ -279,7 +269,7 @@ endgenerate
 
 generate
 for( idx=0 ; idx<3 ; idx=idx+1 )
-	fp_mult UPDATE_MULT_2_1( .a( learn_s2_r[idx] ), .b( delta2_r ), .z( pre_new_w2[idx] ) ); 
+	fp_MULT UPDATE_MULT_2_1( .a( learn_s2_r[idx] ), .b( delta2_r ), .z( pre_new_w2[idx] ) ); 
 endgenerate
 
 generate
@@ -294,15 +284,15 @@ endgenerate
 //cur_stage[1] is high
 generate
 for( idx=0 ; idx<4 ; idx=idx+1 ) begin
-	fp_sub UPDATE_SUB_w1_0( .a(w1_r[ idx+0 ]), .b( pre_new_w1_1r[idx] ), .z( new_w1[ idx+0 ] ) );	
-	fp_sub UPDATE_SUB_w1_1( .a(w1_r[ idx+4 ]), .b( pre_new_w1_2r[idx] ), .z( new_w1[ idx+4 ] ) );	
-	fp_sub UPDATE_SUB_w1_2( .a(w1_r[ idx+8 ]), .b( pre_new_w1_3r[idx] ), .z( new_w1[ idx+8 ] ) );	
+	fp_SUB UPDATE_SUB_w1_0( .a(w1_r[ idx+0 ]), .b( pre_new_w1_1r[idx] ), .z( new_w1[ idx+0 ] ) );	
+	fp_SUB UPDATE_SUB_w1_1( .a(w1_r[ idx+4 ]), .b( pre_new_w1_2r[idx] ), .z( new_w1[ idx+4 ] ) );	
+	fp_SUB UPDATE_SUB_w1_2( .a(w1_r[ idx+8 ]), .b( pre_new_w1_3r[idx] ), .z( new_w1[ idx+8 ] ) );	
 end
 endgenerate
 
 generate
 for( idx=0 ; idx<3 ; idx=idx+1 )
-	fp_sub UPDATE_SUB_w2( .a( w2_r[idx] ), .b( pre_new_w2_r[idx] ), .z( new_w2[idx] ) );	
+	fp_SUB UPDATE_SUB_w2( .a( w2_r[idx] ), .b( pre_new_w2_r[idx] ), .z( new_w2[idx] ) );	
 endgenerate
 //================================================================
 //  INPUT
@@ -325,6 +315,7 @@ begin
 	else if( in_valid_d ) in_cnt <= in_cnt + 2'd1;
 	else in_cnt <= 0;
 end
+
 //target 
 always@( posedge clk or negedge rst_n )
 begin
@@ -339,6 +330,7 @@ begin
 	else if ( in_valid_w1 )	flag <= 1;
 	else if ( out_valid ) flag <= 0;
 end
+
 //weight
 always@( posedge clk or negedge rst_n )
 begin
@@ -381,9 +373,24 @@ begin
 end
 
 //================================================================
+//  PRE_OUTPUT
+//================================================================
+always@( posedge clk or negedge rst_n )
+begin
+	if ( !rst_n ) 
+	begin
+		for( i=0 ; i<10 ; i=i+1 ) cur_stage[i] <= 0 ;
+	end
+	else 
+	begin
+		cur_stage[0] <= in_valid_t ;
+		for( i=0 ; i<9 ; i=i+1 ) cur_stage[i+1] <= cur_stage[i] ;
+	end
+end
+
+//================================================================
 //  OUTPUT : out_valid & out
 //================================================================
-
 always@( posedge clk or negedge rst_n )
 begin
 	if ( !rst_n ) out_valid <= 0 ;
@@ -397,23 +404,6 @@ begin
 	else out <= 0 ;
 end
 
-//================================================================
-//  PRE_OUTPUT
-//================================================================
-
-always@( posedge clk or negedge rst_n )
-begin
-	if (!rst_n) begin
-		for( i=0 ; i<8 ; i=i+1 )
-			cur_stage[i] <= 0 ;
-	end
-	else begin
-		cur_stage[0] <= in_valid_t ;
-		for( i=1 ; i<10 ; i=i+1 ) 
-			cur_stage[i] <= cur_stage[i-1] ;
-	end
-end
-
 endmodule
 
 //############################################################################
@@ -422,13 +412,14 @@ endmodule
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //############################################################################
 
-module fp_mult(
-	//input signal
-	a,
+module fp_MULT(
+	// input signals 
+	a, 
 	b,
-	//output signal
+	// output signals 	
 	z
-); 
+);
+	
 //================================================================
 // IEEE floating point paramenters
 //================================================================
@@ -437,30 +428,25 @@ parameter inst_exp_width = 8;
 parameter inst_ieee_compliance = 0;
 parameter inst_total_width = inst_sig_width + inst_exp_width;
 
-//================================================================
-//  INPUT AND OUTPUT DECLARATION                         
-//================================================================
-input [inst_total_width:0] a, b;
+input  [inst_total_width:0] a, b;
 output [inst_total_width:0] z;
 
-DW_fp_mult #( inst_sig_width, inst_exp_width, inst_ieee_compliance ) 
-		MULT( .a( a ), 
-			  .b( b ), 
-			  .rnd( 3'b000 ),
-			  .z( z )
-			);
+DW_fp_mult #(inst_sig_width, inst_exp_width, inst_ieee_compliance)
+	U1( .a( a ),
+		.b( b ),
+		.rnd( 3'b000 ),
+		.z( z ) );
 endmodule
 
-
-module fp_sum4(
-	//input signal
-	a,
-	b,
-	c,
-	d,
-	//output signal
+module fp_SUM4(
+	// input signals 
+	a, 
+	b, 
+	c, 
+	d, 
+	// output signals 
 	z
-); 
+);
 //================================================================
 // IEEE floating point paramenters
 //================================================================
@@ -469,45 +455,38 @@ parameter inst_exp_width = 8;
 parameter inst_ieee_compliance = 0;
 parameter inst_total_width = inst_sig_width + inst_exp_width;
 
-//================================================================
-//  INPUT AND OUTPUT DECLARATION                         
-//================================================================
-input [inst_total_width:0] a, b, c, d;
+input  [inst_total_width:0] a, b, c, d;
 output [inst_total_width:0] z;
 
-wire [inst_total_width:0] u1_out, u2_out;
+wire [inst_total_width:0] adder_ab, adder_cd;
 
-DW_fp_add #( inst_sig_width, inst_exp_width, inst_ieee_compliance )
-		U1 ( .a( a ), 
-		     .b( b ), 
-			 .z(u1_out), 
-			 .rnd( 3'b000 )
-		   );
-		   
-DW_fp_add #( inst_sig_width, inst_exp_width, inst_ieee_compliance )
-		U2 ( .a( u1_out ), 
-		     .b( c ), 
-			 .z( u2_out ), 
-			 .rnd( 3'b000 )
-		   );
-		   
-		   		   
-DW_fp_add #( inst_sig_width, inst_exp_width, inst_ieee_compliance )
-	 ADDER ( .a( u2_out ), 
-		     .b( d ), 
-			 .z( z ), 
-			 .rnd( 3'b000 )
-		   );  
+DW_fp_add #(inst_sig_width, inst_exp_width, inst_ieee_compliance)
+	U1(	.a( a ),
+		.b( b ),
+		.rnd( 3'b000 ),
+		.z( adder_ab ) );
+
+DW_fp_add #(inst_sig_width, inst_exp_width, inst_ieee_compliance)
+	U2(	.a( c ),
+		.b( d ),
+		.rnd( 3'b000 ),
+		.z( adder_cd ) );
+
+DW_fp_add #(inst_sig_width, inst_exp_width, inst_ieee_compliance)
+  ADDER(.a( adder_ab ),
+		.b( adder_cd ),
+		.rnd( 3'b000 ),
+		.z( z ) );
 endmodule
 
-module fp_sum3(
-	//input signal
-	a,
-	b,
-	c,
-	//output signal
+module fp_SUM3(
+	// input signals 
+	a, 
+	b, 
+	c, 
+	// output signals 	
 	z
-); 
+);
 //================================================================
 // IEEE floating point paramenters
 //================================================================
@@ -516,36 +495,31 @@ parameter inst_exp_width = 8;
 parameter inst_ieee_compliance = 0;
 parameter inst_total_width = inst_sig_width + inst_exp_width;
 
-//================================================================
-//  INPUT AND OUTPUT DECLARATION                         
-//================================================================
 input [inst_total_width:0] a, b, c;
 output [inst_total_width:0] z;
 
-wire [inst_total_width:0] u1_out;
+wire [inst_total_width:0] adder_ab;
 
-DW_fp_add #( inst_sig_width, inst_exp_width, inst_ieee_compliance )
-		U1 ( .a( a ), 
-		     .b( b ), 
-			 .z( u1_out ), 
-			 .rnd( 3'b000 )
-		   );
-		   
-DW_fp_add #( inst_sig_width, inst_exp_width, inst_ieee_compliance )
-	 ADDER ( .a( u1_out ), 
-		     .b( c ), 
-			 .z( z ), 
-			 .rnd( 3'b000 )
-		   );	   		   
+DW_fp_add #(inst_sig_width, inst_exp_width, inst_ieee_compliance)
+	U1(	.a( a ),
+		.b( b ),
+		.rnd( 3'b000 ),
+		.z( adder_ab ) );
+
+DW_fp_add #(inst_sig_width, inst_exp_width, inst_ieee_compliance)
+	U2(	.a( adder_ab ),
+		.b( c ),
+		.rnd( 3'b000 ),
+		.z( z ) );
 endmodule
 
-module fp_sub(
-	//input signal
-	a,
-	b,
-	//output signal
+module fp_SUB(
+	// input signals 
+	a, 
+	b, 
+	// output signals 
 	z
-); 
+);
 //================================================================
 // IEEE floating point paramenters
 //================================================================
@@ -554,16 +528,12 @@ parameter inst_exp_width = 8;
 parameter inst_ieee_compliance = 0;
 parameter inst_total_width = inst_sig_width + inst_exp_width;
 
-//================================================================
-//  INPUT AND OUTPUT DECLARATION                         
-//================================================================
-input [inst_total_width:0] a,b;
+input [inst_total_width:0] a, b;
 output [inst_total_width:0] z;
 
-DW_fp_sub #( inst_sig_width, inst_exp_width, inst_ieee_compliance )
-       SUB ( .a( a ),
-			 .b( b ),
-			 .z( z ),
-			 .rnd( 3'b000 )
-		   );
+DW_fp_sub #(inst_sig_width, inst_exp_width, inst_ieee_compliance)
+	U1(	.a( a ),
+		.b( b ),
+		.rnd( 3'b000 ),
+		.z( z ) );	
 endmodule
