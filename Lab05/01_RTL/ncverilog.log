@@ -1,0 +1,33 @@
+ncverilog: 15.20-s039: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+TOOL:	ncverilog	15.20-s039: Started on Jul 22, 2022 at 13:30:23 CST
+ncverilog
+	TESTBED.v
+	+define+RTL
+	+notimingcheck
+	+access+r
+Loading snapshot worklib.TESTBED:v .................... Done
+SVSEED default: 1
+*Verdi* Loading libsscore_ius152.so
+ncsim> source /usr/cad/cadence/INCISIV/cur/tools/inca/files/ncsimrc
+ncsim> run
+FSDB Dumper for IUS, Release Verdi_Q-2020.03, Linux, 02/09/2020
+(C) 1996 - 2020 by Synopsys, Inc.
+*Verdi* FSDB WARNING: The FSDB file already exists. Overwriting the FSDB file may crash the programs that are using this file.
+*Verdi* : Create FSDB file 'TMIP.fsdb'
+*Verdi* : Begin traversing the scopes, layer (0).
+*Verdi* : Enable +mda dumping.
+*Verdi* : End of traversing.
+PASS PATTERN NO.   0, Cycles: 2375
+---------------------------------------------
+               SPEC 14 IS FAIL!              
+---------------------------------------------
+SPEC 14 Every output signal should be correct when out_valid is high.
+               24412
+out_value should be     -127027 rather than          18977
+out_img_pos should be           0 rather than   0
+out_x should be           0 rather than  3
+out_y should be           0 rather than  2
+Simulation complete via $finish(1) at time 24412 NS + 0
+./PATTERN.v:232     $finish;
+ncsim> exit
+TOOL:	ncverilog	15.20-s039: Exiting on Jul 22, 2022 at 13:30:25 CST  (total: 00:00:02)

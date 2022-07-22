@@ -1,0 +1,83 @@
+wvSetPosition -win $_nWave1 {("G1" 0)}
+wvOpenFile -win $_nWave1 {/home/t107360223/Desktop/ICLAB/Lab05/01_RTL/TMIP.fsdb}
+wvGetSignalOpen -win $_nWave1
+wvGetSignalSetScope -win $_nWave1 "/TESTBED"
+wvGetSignalClose -win $_nWave1
+wvGetSignalOpen -win $_nWave1
+wvGetSignalSetScope -win $_nWave1 "/TESTBED"
+wvGetSignalSetScope -win $_nWave1 "/TESTBED/U_TMIP"
+wvGetSignalSetScope -win $_nWave1 "/TESTBED/U_TMIP"
+wvSetPosition -win $_nWave1 {("G1" 9)}
+wvSetPosition -win $_nWave1 {("G1" 9)}
+wvAddSignal -win $_nWave1 -clear
+wvAddSignal -win $_nWave1 -group {"G1" \
+{/TESTBED/U_TMIP/addr_1\[7:0\]} \
+{/TESTBED/U_TMIP/addr_2\[7:0\]} \
+{/TESTBED/U_TMIP/addr_3\[8:0\]} \
+{/TESTBED/U_TMIP/r_data_1\[15:0\]} \
+{/TESTBED/U_TMIP/r_data_2\[15:0\]} \
+{/TESTBED/U_TMIP/r_data_3\[35:0\]} \
+{/TESTBED/U_TMIP/w_data_1\[15:0\]} \
+{/TESTBED/U_TMIP/w_data_2\[15:0\]} \
+{/TESTBED/U_TMIP/w_data_3\[35:0\]} \
+}
+wvAddSignal -win $_nWave1 -group {"G2" \
+}
+wvSelectSignal -win $_nWave1 {( "G1" 1 2 3 4 5 6 7 8 9 )} 
+wvSetPosition -win $_nWave1 {("G1" 9)}
+wvGetSignalClose -win $_nWave1
+wvZoomIn -win $_nWave1
+wvZoomIn -win $_nWave1
+wvZoomIn -win $_nWave1
+wvZoomIn -win $_nWave1
+wvZoomIn -win $_nWave1
+wvSelectGroup -win $_nWave1 {G2}
+wvSelectSignal -win $_nWave1 {( "G1" 2 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 4 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 1 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 1 2 3 4 5 6 7 8 9 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 1 2 3 4 5 6 7 8 9 )} 
+wvSetRadix -win $_nWave1 -format UDec
+wvSelectSignal -win $_nWave1 {( "G1" 9 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 4 5 6 7 8 9 )} 
+wvSetRadix -win $_nWave1 -2Com
+wvSetCursor -win $_nWave1 646502.394747 -snap {("G1" 6)}
+wvSelectGroup -win $_nWave1 {G2}
+wvSelectSignal -win $_nWave1 {( "G1" 7 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 7 8 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 5 7 8 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 4 5 7 8 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 2 4 5 7 8 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 1 2 4 5 7 8 )} 
+wvCut -win $_nWave1
+wvSetPosition -win $_nWave1 {("G1" 3)}
+wvSelectSignal -win $_nWave1 {( "G1" 1 )} 
+wvGetSignalOpen -win $_nWave1
+wvGetSignalSetScope -win $_nWave1 "/TESTBED"
+wvGetSignalSetScope -win $_nWave1 "/TESTBED/U_TMIP"
+wvGetSignalSetScope -win $_nWave1 "/TESTBED/U_TMIP"
+wvSetPosition -win $_nWave1 {("G1" 4)}
+wvSetPosition -win $_nWave1 {("G1" 4)}
+wvAddSignal -win $_nWave1 -clear
+wvAddSignal -win $_nWave1 -group {"G1" \
+{/TESTBED/U_TMIP/addr_3\[8:0\]} \
+{/TESTBED/U_TMIP/r_data_3\[35:0\]} \
+{/TESTBED/U_TMIP/w_data_3\[35:0\]} \
+{/TESTBED/U_TMIP/clk} \
+}
+wvAddSignal -win $_nWave1 -group {"G2" \
+}
+wvSelectSignal -win $_nWave1 {( "G1" 4 )} 
+wvSetPosition -win $_nWave1 {("G1" 4)}
+wvGetSignalClose -win $_nWave1
+wvZoomIn -win $_nWave1
+wvSetCursor -win $_nWave1 2277733.761027 -snap {("G1" 3)}
+wvSelectSignal -win $_nWave1 {( "G1" 3 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 1 )} 
+wvSelectSignal -win $_nWave1 {( "G1" 1 2 3 4 )} 
+wvCut -win $_nWave1
+wvSetPosition -win $_nWave1 {("G1" 0)}
+wvDisplayGridCount -win $_nWave1 -off
+wvGetSignalClose -win $_nWave1
+wvReloadFile -win $_nWave1
+wvGetSignalOpen -win $_nWave1

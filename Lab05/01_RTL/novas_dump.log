@@ -1,0 +1,141 @@
+ncsim 15.20-s039
+Linux 2.6.32-642.el6.x86_64 #1 SMP Tue May 10 17:27:01 UTC 2016 x86_64
+CPU cores: 24
+Limit information:
+======================================
+cputime			unlimited
+filesize		unlimited
+datasize		unlimited
+stacksize		10240 kbytes
+coredumpsize	0 kbytes
+memoryuse		unlimited
+vmemoryuse		unlimited
+descriptors		4096
+memorylocked	64 kbytes
+maxproc			1024
+======================================
+(Special)Runtime environment variables:
+
+Runtime environment variables:
+USER=t107360223
+LOGNAME=t107360223
+HOME=/home/t107360223
+PATH=/usr/cad/mentor/Tessent/cur/bin:/usr/cad/mentor/Catapult/cur//bin:/usr/cad/mentor/calibre/cur/bin:/usr/cad/synopsys/xa/cur/bin:/usr/cad/synopsys/verdi/cur/bin:/usr/cad/synopsys/verdi/cur/nLint/bin:/usr/cad/synopsys/tmax/cur/bin:/usr/bin/X11:/usr/cad/synopsys/coreConsultant/cur/bin:/usr/cad/synopsys/synthesis/cur/amd64/syn/bin:/usr/cad/synopsys/lc/cur/bin:/usr/cad/synopsys/spyglass/cur/SPYGLASS_HOME/bin:/usr/bin/X11:/usr/cad/synopsys/primetime/cur/amd64/syn/bin:/usr/cad/synopsys/formality/cur/bin:/usr/cad/cadence/STRATUS/cur/tools/bin:/usr/cad/cadence/JASPER/cur/bin:/usr/cad/cadence/JASPER/cur/bin:/usr/cad/cadence/JASPER/cur/bin:/usr/cad/cadence/JASPER/cur/bin:/usr/cad/cadence/JASPER/cur/bin:/usr/cad/cadence/INNOVUS/cur/tools/celtic/bin:/usr/cad/cadence/INNOVUS/cur/tools/plato/bin:/usr/cad/cadence/INNOVUS/cur/tools/dfII/bin:/usr/cad/cadence/INNOVUS/cur/tools/bin:/usr/cad/cadence/INNOVUS/cur//tools/tlfUtil/bin:/usr/cad/cadence/GENUS/cur/tools/bin:/usr/cad/cadence/INCISIV/cur/tools/bin:/usr/cad/cadence/INCISIV/cur/tools/vtools/vfault/bin:/usr/cad/cadence/INCISIV/cur/tools/dfII/bin:/bin:/usr/bin:/usr/ucb:/etc:.
+MAIL=/var/spool/mail/t107360223
+SHELL=/bin/tcsh
+SSH_CLIENT=219.71.216.156 49954 22
+SSH_CONNECTION=219.71.216.156 49954 140.124.72.29 22
+SSH_TTY=/dev/pts/0
+TERM=xterm
+DISPLAY=localhost:10.0
+SELINUX_ROLE_REQUESTED=
+SELINUX_LEVEL_REQUESTED=
+SELINUX_USE_CURRENT_RANGE=
+HOSTTYPE=x86_64-linux
+VENDOR=unknown
+OSTYPE=linux
+MACHTYPE=x86_64
+SHLVL=1
+PWD=/home/t107360223/Desktop/ICLAB/Lab05/01_RTL
+GROUP=users
+HOST=islabx6
+REMOTEHOST=219.71.216.156
+HOSTNAME=islabx6
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=01;05;37;41:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.tbz=01;31:*.tbz2=01;31:*.bz=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=01;36:*.au=01;36:*.flac=01;36:*.mid=01;36:*.midi=01;36:*.mka=01;36:*.mp3=01;36:*.mpc=01;36:*.ogg=01;36:*.ra=01;36:*.wav=01;36:*.axa=01;36:*.oga=01;36:*.spx=01;36:*.xspf=01;36:
+CVS_RSH=ssh
+G_BROKEN_FILENAMES=1
+SSH_ASKPASS=/usr/libexec/openssh/gnome-ssh-askpass
+LANG=zh_TW.UTF-8
+LESSOPEN=||/usr/bin/lesspipe.sh %s
+QTDIR=/usr/lib64/qt-3.3
+QTINC=/usr/lib64/qt-3.3/include
+QTLIB=/usr/lib64/qt-3.3/lib
+LD_LIBRARY_PATH=/usr/cad/synopsys/verdi/cur/etc/lib/libstdc++/LINUX64/:/usr/cad/synopsys/verdi/cur/share/PLI/IUS/LINUX:/:/usr/cad/cadence/STRATUS/cur/tools/lib:/usr/cad/cadence/INNOVUS/cur//tools/tlfUtil/lib:/usr/cad/cadence/GENUS/cur/tools/lib:/usr/cad/cadence/INCISIV/cur/tools/lib:/usr/cad/cadence/INCISIV/cur/tools/vtools/vfault/lib:/usr/openwin/lib:/usr/dt/lib:/usr/lib:/usr/local/lib
+LM_LICENSE_FILE=1717@lshc:26585@lshc:5280@lshc:5280@lsnchu:5280@lscic:
+ENCOUNTER=/usr/cad/cadence/INNOVUS/cur/tools/fe
+FORMALITY=/usr/cad/synopsys/formality/cur
+PRIMETIME=/usr/cad/synopsys/primetime/cur
+SG_HTML_BROWSER=/usr/bin/mozilla
+EDITOR=/usr/bin/vim
+SYNTHESIS=/usr/cad/synopsys/synthesis/cur
+SYN_MAN_DIR=/usr/cad/synopsys/synthesis/cur/doc/syn/man
+MANPATH=/usr/cad/synopsys/synthesis/cur/doc/syn/man
+SYNOPSYS_TMAX=/usr/cad/synopsys/tmax/cur
+SHLIB_PATH=/usr/cad/synopsys/verdi/cur/etc/lib/libstdc++/LINUX64/
+MGC_HOME=/usr/cad/mentor/calibre/cur
+MGC_TMPDIR=/tmp
+MGC_LOCATION_MAP=NO_MAP
+_IRUNROOT_=/usr/cad/cadence/INCISIV/cur/tools
+CDS_ARCH=lnx86
+NCRUNMODE=ncverilog:./INCA_libs/irun.lnx86.15.20.nc
+IRUNBATCH=FALSE
+IMPERAS_PORT_FILE=.vsp_ovp_gdb_port
+TCL_LIBRARY=/usr/cad/cadence/INCISIV/cur/tools/inca/files/tcl/library
+Runtime command line arguments:
+argv[0]=ncverilog
+argv[1]=TESTBED.v
+argv[2]=+define+RTL
+argv[3]=+notimingcheck
+argv[4]=+access+r
+79 profile - 100
+          CPU/Mem usage: 0.040 sys,  0.030 user,  72.34M sys,  0.00M vm
+80 VC callback profile - scalar:0 vector:0
+81 Fri Jul 22 13:30:24 2022
+82 pliAppInit
+83 FSDB_GATE is disabled.
+84 Enable Parallel Dumping.
+85 pliAppMiscSet: New Sim Round
+86 pliEntryInit
+87 LIBSSCORE=found /usr/cad/synopsys/verdi/cur/share/PLI/IUS/LINUX/libsscore_ius152.so through $LD_LIBRARY_PATH setting.
+88 argv[0]: TMIP.fsdb
+89 argv[0]: 0
+90 argv[1]: +mda
+91 FSDB Dumper for IUS, Release Verdi_Q-2020.03, Linux, 02/09/2020
+92 (C) 1996 - 2020 by Synopsys, Inc.
+93 sps_call_fsdbDumpfile at 0 : /home/t107360223/Desktop/ICLAB/Lab05/01_RTL/TESTBED.v(73)
+94 argv[0]: TMIP.fsdb
+95 *Verdi* FSDB WARNING: The FSDB file already exists. Overwriting the FSDB file may crash the programs that are using this file.
+96 *Verdi* : Create FSDB file 'TMIP.fsdb'
+97 sps_call_fsdbDumpvars at 0 : /home/t107360223/Desktop/ICLAB/Lab05/01_RTL/TESTBED.v(74)
+98 argv[0]: 0
+99 argv[1]: +mda
+100 *Verdi* : Begin traversing the scopes, layer (0).
+101 *Verdi* : Enable +mda dumping.
+102 Cell instance `TESTBED.U_TMIP.IMAGE'.
+103 *Verdi* : End of traversing.
+104 fsdbDumpvars traverse var: profile - 
+          CPU/Mem usage: 0.050 sys,  0.060 user,  155.44M sys,  0.00M vm
+                   incr: 0.010 sys,  0.020 user,  4.24M sys,  0.00M vm
+                   accu: 0.010 sys,  0.020 user,  4.24M sys,  0.00M vm
+              accu incr: 0.010 sys,  0.020 user,  4.24M sys,  0.00M vm
+
+          Count usage: 1584 var,  1472 idcode,  1472 callback
+                 incr: 1584 var,  1472 idcode,  1472 callback
+                 accu: 1584 var,  1472 idcode,  1472 callback
+            accu incr: 1584 var,  1472 idcode,  1472 callback
+105 VC callback profile - scalar:0 vector:0
+106 Fri Jul 22 13:30:24 2022
+107 fsdbDumpvars: profile - 
+          CPU/Mem usage: 0.050 sys,  0.070 user,  156.49M sys,  0.00M vm
+                   incr: 0.000 sys,  0.010 user,  1.05M sys,  0.00M vm
+                   accu: 0.010 sys,  0.030 user,  5.30M sys,  0.00M vm
+              accu incr: 0.000 sys,  0.010 user,  1.05M sys,  0.00M vm
+
+          Count usage: 1584 var,  1472 idcode,  1472 callback
+                 incr: 0 var,  0 idcode,  0 callback
+                 accu: 1584 var,  1472 idcode,  1472 callback
+            accu incr: 0 var,  0 idcode,  0 callback
+108 VC callback profile - scalar:314 vector:1158
+109 Fri Jul 22 13:30:24 2022
+110 End of simulation at 2441200
+111 VC callback profile - scalar:162953 vector:50010
+112 Fri Jul 22 13:30:24 2022
+113 Begin FSDB profile info:
+114 FSDB Writer : bc1(162953) bcn(50010) mtf/stf(0/0)
+FSDB Writer elapsed time : flush(0.095103) io wait(0.000000) theadpool wait(0.000000)
+FSDB Writer cpu time : MT Compression : 0
+115 End FSDB profile info
+116 Parallel profile    -  Flush:3 Expand:0 ProduceWait:0 ConsumerWait:0 BlockUsed:1
+117                        ProduceTime:0.232530483 ConsumerTime:0.000000000 Buffer:64MB
+118 SimExit
+119 Sim process exit
