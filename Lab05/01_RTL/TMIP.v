@@ -1,3 +1,13 @@
+//############################################################################
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//   2022 ICLAB Spring Course
+//   Lab05			: Template Matching With Image Processing
+//   Author         : Yao-Zhan Xu (xuyaozhan8905@gmail.com)
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//   File Name   : TMIP.v
+//   Module Name : TMIP
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//############################################################################
 module TMIP(
 // input signals
     clk,
@@ -15,7 +25,7 @@ module TMIP(
     out_y,
     out_img_pos,
     out_value
-);
+); 
 //================================================================
 //  INPUT AND OUTPUT DECLARATION                         
 //================================================================
@@ -37,7 +47,6 @@ parameter STATE_IDLE = 3'd0,
 		  STATE_CROSS = 3'd2,
 		  STATE_CROSS_BEFORE = 3'd3, // initial img_addr
 		  STATE_POOLING = 3'd4,
-		  //STATE_FLIP = 3'd4, // inluding Horizontal, Vertical, Left-diagonal, Right-diagonal
 		  STATE_ZOOMIN = 3'd5,
 		  STATE_ADJUST = 3'd6,
 		  STATE_OUTPUT = 3'd7;
@@ -48,8 +57,6 @@ parameter SUB_STATE_WAIT = 1'b0, SUB_STATE_INPUT = 1'b1;
 //parameter SUB_STATE_CROSS4 = 2'd0, SUB_STATE_CROSS6 = 2'd1, SUB_STATE_CROSS9 = 2'd2;
 parameter SUB_STATE_LEFT_TOP = 3'd0, SUB_STATE_TOP = 3'd1, SUB_STATE_RIGHT_TOP = 3'd2, SUB_STATE_LEFT = 3'd3, 
 		  SUB_STATE_MID = 3'd4, SUB_STATE_RIGHT = 3'd5, SUB_STATE_LEFT_DOWN = 3'd6, SUB_STATE_DOWN = 3'd7, SUB_STATE_RIGHT_DOWN = 4'd8;
-// cur_state == STATE_FLIP
-parameter SUB_STATE_HORIZONTAL = 2'd0, SUB_STATE_VERTICAL = 2'd1, SUB_STATE_LEFT_DIAG = 2'd2, SUB_STATE_RIGHT_DIAG = 2'd3;
 // cur_state == ADJUSTMENT, ZOOM-IN,  MAX POOLING
 parameter SUB_STATE_READ = 2'd0, SUB_STATE_DELAY = 2'd1 , SUB_STATE_WRITE = 2'd2;
 // cur_state == MAX POOLING
@@ -62,7 +69,6 @@ integer i;
 reg [2:0] cur_state, nx_state;
 reg cur_input_state, nx_input_state; // cur_state == STATE_IDLE
 reg [3:0] cur_cross_state, nx_cross_state; // cur_state == STATE_CROSS
-reg [1:0] cur_flip_state, nx_flip_state;
 reg [1:0] cur_adjust_state, nx_adjust_state; // cur_state == STATE_ADJUST 
 reg [1:0] cur_zoom_state, nx_zoom_state; // cur_state == STATE_ZOOMIN
 reg [2:0] cur_pooling_state, nx_pooling_state; // cur_state == STATE_POOLING
@@ -82,10 +88,7 @@ reg [3:0] act_cnt; // counter of action data
 
 reg flag;// in_valid_2 flag 
 // flip (inluding Horizontal, Vertical, Left-diagonal, Right-diagonal)
-reg hflip; // Horizontal
-reg vflip; // Vertical
-reg lflip; // Left-diagonal
-reg rflip; // Right-diagonal
+reg [3:0] flip; 
 // answer SRAM port
 wire ans_wen; // write enable negative of answer sram
 reg [7:0] ans_addr; // address of answer sram 
@@ -98,7 +101,7 @@ wire signed  [39:0] mul; // multiplexer(template*image)
 
 reg finish_cross; // Is cross correlation proccess done 
 // pre_output
-wire [7:0] tmp_ans_addr; // ans_addr minus one. To simplify code cleanliness 
+reg [7:0] tmp_ans_addr; // ans_addr minus one. To simplify code cleanliness 
 
 reg [3:0] max_x, max_y; // index of maximun value
 reg [7:0] max_pos;//  index of maximun value
@@ -112,7 +115,7 @@ reg flag_cross_finish; // Using for one clock cycle delay
 reg flag_adj_finish; // finish_adjustment flag
 reg [7:0] adj_cnt; // adjustment counter 
 reg [7:0] adj_mem_cnt; // adjustment counter 
-reg signed [15:0] tmp_adj_data; // temporary operation variable 
+wire signed [15:0] tmp_adj_data; // temporary operation variable 
 wire signed [15:0] adj_data; // contorl data input of image sram
 // zoomin
 reg [7:0] zoom_cnt; // zoomin counter 
@@ -120,6 +123,8 @@ reg signed [15:0] zoom_data; // contorl data input of image sram
 reg [1:0] zoom_output_cnt;// proccess counter
 reg [7:0] tmp_zoom_cnt; // after zoomin counter
 reg [7:0] orig_zoom_cnt; // before zoomin counter 
+reg signed [15:0] img_buffer; // img_data buffer
+wire signed [15:0] tmp_zoom_data; // temporary variable
 
 reg flag_zoom_finish; // finish flag
 reg flag_zoom_init; // initial zoom_cnt
@@ -131,7 +136,6 @@ reg flag_pool_finish; // finish flag
 //================================================================
 //	INPUT
 //================================================================
-
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) in_cnt <= 0;
 	else if( in_valid ) in_cnt <= in_cnt + 1;
@@ -164,18 +168,6 @@ end
 
 // IMAGE SRAM
 IMG_MEM_100MHz IMAGE(.Q(img_data), .CLK(clk), .CEN(1'b0), .WEN(img_wen), .A(img_addr), .D(img_input_data), .OEN(1'b0));
-/*
-always@( posedge clk or negedge rst_n ) begin
-	if( !rst_n ) img_input_data <= 0;
-	else begin
-		case( cur_state )
-		STATE_INPUT: img_input_data = image;
-		STATE_ADJUST: img_input_data = adj_data;
-		STATE_ZOOMIN: img_input_data = zoom_data;
-		default: img_input_data = 0;
-		endcase
-	end
-end*/
 
 always@( * ) begin
 	case( cur_state )
@@ -226,9 +218,7 @@ always@( * ) begin
 			img_addr = pooling_mem_cnt;
 		else img_addr = pooling_cnt;
 	end
-	STATE_CROSS_BEFORE: begin
-		img_addr = 0;
-	end
+	STATE_CROSS_BEFORE: img_addr = 0;
 	default: img_addr = 0;
 	endcase	
 end
@@ -269,19 +259,32 @@ end
 //================================================================
 //	FLIP
 //================================================================
+//  0: no flip
+//  1: Horizontal flip
+//  2: Vertical flip
+//  3: Vertical + Horizontal flip
+//  4: Left-diagonal flip
+//  5: Left-diagonal + Horizontal flip
+//  6: Left-diagonal + Vertical flip
+//  7: Left-diagonal + Horizontal + Vertical flip
+//  8: Right-diagonal flip
+//  9: Right-diagonal + Horizontal flip
+// 10: Right-diagonal + Vertical flip
+// 11: Right-diagonal + Horizontal + Vertical flip
+// 12: Right-diagonal + Left-diagonal flip
+// 13: Right-diagonal + Left-diagonal + Horizontal flip
+// 14: Right-diagonal + Left-diagonal + Vertical flip
+// 15: Right-diagonal + Left-diagonal + Horizontal + Vertical flip
+
 always@( posedge clk or negedge rst_n ) begin
-	if( !rst_n ) begin
-		hflip <= 0; vflip <= 0; rflip <= 0; lflip <= 0;
-	end
-	else if( in_valid ) begin
-		hflip <= 0; vflip <= 0; rflip <= 0; lflip <= 0;
-	end
+	if( !rst_n ) flip <= 0;            
+	else if( in_valid ) flip <= 0;
 	else if( in_valid_2 ) begin
 		case( action )
-		3'd2: hflip <= ~hflip;
-		3'd3: vflip <= ~vflip;
-		3'd4: lflip <= ~lflip;
-		3'd5: rflip <= ~rflip;
+		3'd2: flip[0] <= ~flip[0];
+		3'd3: flip[1] <= ~flip[1];
+		3'd4: flip[2] <= ~flip[2];
+		3'd5: flip[3] <= ~flip[3];
 		endcase
 	end
 end
@@ -324,46 +327,27 @@ always@( * ) begin
 	endcase
 end
 
-always@( * ) begin
-	if( img_data[0] ) tmp_adj_data = img_data - 1;
-	else tmp_adj_data = img_data; 
-end
- 
-assign adj_data = tmp_adj_data*0.5 + 50 ;
+assign tmp_adj_data = ( img_data[0] )? img_data - 1: img_data; 
+assign adj_data = tmp_adj_data/2 + 50 ;
 
 //================================================================
 //	ZOOM-IN
 //================================================================
-reg signed [15:0] tmp_zoom_data[0:3], tmp_zoom_data2;
-wire signed [15:0] tmp_zoom_data3;
-assign tmp_zoom_data3 = img_data/3;
-
-always@( * ) begin
-	if( img_data[0] ) tmp_zoom_data2 = img_data - 1;
-	else tmp_zoom_data2 = img_data;
-end
-
 always@( posedge clk or negedge rst_n ) begin
-	if( !rst_n ) begin
-		for( i=0 ; i<4 ; i=i+1 ) tmp_zoom_data[i] <= 0;
-	end
+	if( !rst_n ) img_buffer <= 0;
 	else if( cur_state == STATE_ZOOMIN ) begin
-		if( cur_zoom_state == SUB_STATE_DELAY ) begin
-			tmp_zoom_data[0] <= img_data;
-			tmp_zoom_data[1] <= tmp_zoom_data3;
-			tmp_zoom_data[2] <= (img_data*2)/3 + 20 ;
-			tmp_zoom_data[3] <= tmp_zoom_data2*0.5;
-		end
+		if( cur_zoom_state == SUB_STATE_DELAY ) img_buffer <= img_data;
 	end
 end
 
+assign tmp_zoom_data = ( img_buffer[0] )? img_buffer - 1 : img_buffer ; 
 always@( * ) begin
 	//if( cur_zoom_state == )
 	case( zoom_output_cnt )
-	2'd0: zoom_data = tmp_zoom_data[0];
-	2'd1: zoom_data = tmp_zoom_data[1];
-	2'd2: zoom_data = tmp_zoom_data[2];
-	2'd3: zoom_data = tmp_zoom_data[3];
+	2'd0: zoom_data = img_buffer;
+	2'd1: zoom_data = img_buffer/3;
+	2'd2: zoom_data = (img_buffer*2)/3 + 20;
+	2'd3: zoom_data = tmp_zoom_data/2;
 	endcase
 end
 
@@ -760,8 +744,13 @@ assign ans_wen = ( finish_cross )? 1'b0 : 1'b1;
 
 //================================================================
 //	PRE_OUTPUT
-//================================================================
-assign tmp_ans_addr = ans_addr - 1;
+//================================================================ 
+always@( * ) begin
+	if( size == 4 ) tmp_ans_addr = ( ans_addr == 0 )? 8'd15: ans_addr - 1;
+	else if( size == 8 ) tmp_ans_addr = ( ans_addr == 0 )? 8'd63: ans_addr - 1;
+	// size == 16
+	else tmp_ans_addr = ( ans_addr == 0 )? 8'd255: ans_addr - 1;
+end
 
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) begin
@@ -1094,7 +1083,7 @@ always@( posedge clk or negedge rst_n ) begin
 end
 always@( * ) begin
 	case( cur_adjust_state ) 
-	SUB_STATE_READ: nx_adjust_state = ( cur_state == STATE_ADJUST )? SUB_STATE_WRITE : SUB_STATE_READ ;
+	SUB_STATE_READ: nx_adjust_state = ( cur_state == STATE_ADJUST && !flag_adj_finish )? SUB_STATE_WRITE : SUB_STATE_READ ;
 	SUB_STATE_WRITE: nx_adjust_state = SUB_STATE_DELAY;
 	SUB_STATE_DELAY: nx_adjust_state = SUB_STATE_READ;
 	default: nx_adjust_state = SUB_STATE_READ;
