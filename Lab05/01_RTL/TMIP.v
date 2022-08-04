@@ -43,10 +43,10 @@ output reg signed[39:0] out_value;
 //  integer / genvar / parameters
 //================================================================
 parameter STATE_IDLE = 3'd0,
-		  STATE_INPUT = 3'd1,
-		  STATE_CROSS = 3'd2,
-		  STATE_CROSS_BEFORE = 3'd3, // initial img_addr
-		  STATE_POOLING = 3'd4,
+		  STATE_CROSS = 3'd1,
+		  STATE_CROSS_BEFORE = 3'd2, // initial img_addr
+		  STATE_POOLING = 3'd3,
+		  STATE_FLIP = 3'd4,
 		  STATE_ZOOMIN = 3'd5,
 		  STATE_ADJUST = 3'd6,
 		  STATE_OUTPUT = 3'd7;
@@ -88,13 +88,16 @@ reg [3:0] act_cnt; // counter of action data
 
 reg flag;// in_valid_2 flag 
 // flip (inluding Horizontal, Vertical, Left-diagonal, Right-diagonal)
-reg [3:0] flip; 
+reg [3:0] flip;
+reg fliph,flipv, flipr,flipl; 
+wire [3:0] cur_flip;
 // answer SRAM port
 wire ans_wen; // write enable negative of answer sram
 reg [7:0] ans_addr; // address of answer sram 
 wire signed [39:0] ans_data; // output data of answer sram  
 reg signed  [39:0] ans_input; // input data of answer sram 
 // cross
+reg [7:0] tmp_cross_cnt; // temporary counter 
 reg [7:0] cross_cnt; // address control by  img_addr
 reg [3:0] inner_cnt; // interior counter. Using for cross correlation.
 wire signed  [39:0] mul; // multiplexer(template*image)
@@ -171,7 +174,7 @@ IMG_MEM_100MHz IMAGE(.Q(img_data), .CLK(clk), .CEN(1'b0), .WEN(img_wen), .A(img_
 
 always@( * ) begin
 	case( cur_state )
-	STATE_INPUT: img_input_data = image;
+	STATE_IDLE: img_input_data = image;
 	STATE_ADJUST: img_input_data = adj_data ;
 	STATE_ZOOMIN: img_input_data = zoom_data;
 	STATE_POOLING: img_input_data = pooling_data;
@@ -181,7 +184,7 @@ end
 
 always@( * ) begin
 	case( cur_state )
-	STATE_INPUT: img_wen = ( nx_input_state == SUB_STATE_WAIT )? 1'b1 : 1'b0;
+	STATE_IDLE: img_wen = ( nx_input_state == SUB_STATE_WAIT )? 1'b1 : 1'b0;
 	STATE_ADJUST: begin
 		if( cur_adjust_state == SUB_STATE_WRITE ) img_wen = 1'b0;
 		else img_wen = 1'b1 ;
@@ -200,8 +203,8 @@ end
 
 always@( * ) begin
 	case( cur_state ) 
-	STATE_INPUT: img_addr = in_cnt;
-	STATE_CROSS: img_addr = cross_cnt;
+	STATE_IDLE: img_addr = in_cnt;
+	STATE_CROSS, STATE_CROSS_BEFORE: img_addr = cross_cnt;
 	STATE_ADJUST: begin
 		if( size == 4 ) begin
 			if( adj_mem_cnt == 16 ) img_addr = 0;
@@ -218,16 +221,13 @@ always@( * ) begin
 			img_addr = pooling_mem_cnt;
 		else img_addr = pooling_cnt;
 	end
-	STATE_CROSS_BEFORE: img_addr = 0;
 	default: img_addr = 0;
 	endcase	
 end
 
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) act_cnt <= 0;
-	else if( in_valid_2 ) begin
-		if( action != 3'd2 && action != 3'd3 && action != 3'd4 && action != 3'd5 ) act_cnt <= act_cnt + 1;
-	end
+	else if( in_valid_2 ) act_cnt <= act_cnt + 1;
 	else act_cnt <= 0;
 end
 
@@ -235,16 +235,15 @@ always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) begin
 		for( i=0 ; i<16 ; i=i+1 ) act[i] <= 0;
 	end
-	else if( cur_state == STATE_INPUT ) begin
-		if( in_valid_2 ) begin
-			if( action != 3'd2 && action != 3'd3 && action != 3'd4 && action != 3'd5 ) act[act_cnt] <= action;
-		end
+	else if( cur_state == STATE_IDLE ) begin
+		if( in_valid_2 ) act[act_cnt] <= action;
 		else if( flag == 1'b1 ) begin
 			act[15] <= 0;
 			for( i=14 ; i>=0 ; i=i-1 ) act[i] <= act[i+1]; 
 		end
 	end
-	else if( cur_state != nx_state ) begin
+	// corner case
+	else if( (cur_state==STATE_POOLING && flag_pool_finish)||(cur_state==STATE_ZOOMIN&&flag_zoom_finish)||(cur_state==STATE_ADJUST&&flag_adj_finish) || cur_state == STATE_FLIP ) begin
 		act[15] <= 0;
 		for( i=14 ; i>=0 ; i=i-1 ) act[i] <= act[i+1]; 
 	end
@@ -253,7 +252,7 @@ always@( posedge clk or negedge rst_n ) begin
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) flag <= 0;
 	else if( in_valid_2 ) flag <= 1;
-	else if( cur_state != STATE_INPUT ) flag <= 0;
+	else if( cur_state != STATE_IDLE ) flag <= 0;
 end
 
 //================================================================
@@ -276,6 +275,15 @@ end
 // 14: Right-diagonal + Left-diagonal + Vertical flip
 // 15: Right-diagonal + Left-diagonal + Horizontal + Vertical flip
 
+// 0 is equals to 15
+// 1 is equals to 14
+// 2 is equals to 13
+// 3 is equals to 12
+// 4 is equals to 11
+// 5 is equals to 10
+// 6 is equals to 9
+// 7 is equals to 8
+
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) flip <= 0;            
 	else if( in_valid ) flip <= 0;
@@ -289,6 +297,22 @@ always@( posedge clk or negedge rst_n ) begin
 	end
 end
 
+always@( posedge clk or negedge rst_n ) begin
+	if( !rst_n ) begin 
+		fliph <= 0; flipv <= 0; flipl <= 0 ; flipr <= 0 ;
+	end
+	else if( cur_state == STATE_IDLE ) begin
+		fliph <= 0; flipv <= 0; flipl <= 0 ; flipr <= 0 ;
+	end
+	else if( (cur_state==STATE_POOLING && flag_pool_finish)||(cur_state==STATE_ZOOMIN&&flag_zoom_finish)||(cur_state==STATE_ADJUST&&flag_adj_finish) || cur_state == STATE_FLIP ) begin
+		if( act[0]==2 && flip[0] ) fliph <= ~fliph;
+		else if( act[0]==3 && flip[1] ) flipv <= ~flipv;
+		else if( act[0]==4 && flip[2] ) flipl <= ~flipl;
+		else if( act[0]==5 && flip[3] ) flipr <= ~flipr;
+	end
+end
+
+assign cur_flip = {flipr,flipl,flipv,fliph};
 //================================================================
 //	SHORTCUT + BRIGHTNESS ADJUSTMENT
 //================================================================
@@ -300,9 +324,19 @@ always@( posedge clk or negedge rst_n ) begin
 			else if( size == 16 ) adj_cnt <= ( adj_cnt[3:0] == 4'b1011 )? adj_cnt+9 : adj_cnt+1 ;			
 		end
 	end
+	else if( cur_state == STATE_ZOOMIN ) begin
+		if( size == 4 ) adj_cnt <= 18;
+		else if( size == 8 ) adj_cnt <= 68;
+		else adj_cnt <= 0;
+	end
+	else if( cur_state == STATE_POOLING ) begin
+		if( size == 16 ) adj_cnt <= 18;
+		else adj_cnt <= 0;
+	end
 	else begin
 		if( size == 8 ) adj_cnt <= 18;
 		else if( size == 16 ) adj_cnt <= 68;
+		else adj_cnt <= 0;
 	end
 end
 
@@ -333,6 +367,8 @@ assign adj_data = tmp_adj_data/2 + 50 ;
 //================================================================
 //	ZOOM-IN
 //================================================================
+wire signed[19:0] zoom_data_1, zoom_data_2, zoom_data_3, zoom_data_4;
+
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) img_buffer <= 0;
 	else if( cur_state == STATE_ZOOMIN ) begin
@@ -341,13 +377,62 @@ always@( posedge clk or negedge rst_n ) begin
 end
 
 assign tmp_zoom_data = ( img_buffer[0] )? img_buffer - 1 : img_buffer ; 
+assign zoom_data_1 = img_buffer;
+assign zoom_data_2 = img_buffer/3;
+assign zoom_data_3 = (img_buffer*2)/3 + 20;
+assign zoom_data_4 = tmp_zoom_data/2;
+
 always@( * ) begin
 	//if( cur_zoom_state == )
 	case( zoom_output_cnt )
-	2'd0: zoom_data = img_buffer;
-	2'd1: zoom_data = img_buffer/3;
-	2'd2: zoom_data = (img_buffer*2)/3 + 20;
-	2'd3: zoom_data = tmp_zoom_data/2;
+	2'd0: begin
+		case( cur_flip )
+		0,15: zoom_data = zoom_data_1;
+		1,14: zoom_data = zoom_data_2;
+		2,13: zoom_data = zoom_data_3;
+		3,12: zoom_data = zoom_data_4;
+		4,11: zoom_data = zoom_data_4;
+		5,10: zoom_data = zoom_data_2;
+		6, 9: zoom_data = zoom_data_3; 
+		7, 8: zoom_data = zoom_data_1; 
+		endcase
+	end
+	2'd1: begin
+		case( cur_flip )
+		0,15: zoom_data = zoom_data_2;
+		1,14: zoom_data = zoom_data_1;
+		2,13: zoom_data = zoom_data_4;
+		3,12: zoom_data = zoom_data_3;
+		4,11: zoom_data = zoom_data_2;
+		5,10: zoom_data = zoom_data_4;
+		6, 9: zoom_data = zoom_data_1;
+		7, 8: zoom_data = zoom_data_3;
+		endcase
+	end	
+	2'd2: begin
+		case( cur_flip )
+		0,15: zoom_data = zoom_data_3;
+		1,14: zoom_data = zoom_data_4;
+		2,13: zoom_data = zoom_data_1;
+		3,12: zoom_data = zoom_data_2;
+		4,11: zoom_data = zoom_data_3;
+		5,10: zoom_data = zoom_data_1;
+		6, 9: zoom_data = zoom_data_4;
+		7, 8: zoom_data = zoom_data_2;
+		endcase
+	end	
+	2'd3: begin
+		case( cur_flip )
+		0,15: zoom_data = zoom_data_4;
+		1,14: zoom_data = zoom_data_3;
+		2,13: zoom_data = zoom_data_2;
+		3,12: zoom_data = zoom_data_1;
+		4,11: zoom_data = zoom_data_1;
+		5,10: zoom_data = zoom_data_3;
+		6, 9: zoom_data = zoom_data_2;		
+		7, 8: zoom_data = zoom_data_4;		
+		endcase
+	end	
 	endcase
 end
 
@@ -410,11 +495,15 @@ end
 
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) flag_zoom_finish <= 0;
-	else if( zoom_output_cnt == 2'd3 ) begin
-		if( size == 4 ) flag_zoom_finish <= ( zoom_cnt == 7'd9 )? 1'b1 :1'b0;
-		else if( size == 8 ) flag_zoom_finish <= ( zoom_cnt == 7'd17 )? 1'b1 :1'b0;
+	else if( cur_state == STATE_ZOOMIN ) begin
+		if( size == 16 ) flag_zoom_finish <= 1'b1;
+		else if( zoom_output_cnt == 2'd3 ) begin
+			if( size == 4 ) flag_zoom_finish <= ( zoom_cnt == 7'd9 )? 1'b1 :1'b0;
+			else if( size == 8 ) flag_zoom_finish <= ( zoom_cnt == 7'd17 )? 1'b1 :1'b0;
+		end
+		else flag_zoom_finish <= 1'b0;
 	end
-	else flag_zoom_finish <= 0;
+	else flag_zoom_finish <= 1'b0;
 end
 
 always@( posedge clk or negedge rst_n ) begin
@@ -459,9 +548,13 @@ end
 
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) flag_pool_finish <= 0;
-	else if( cur_pooling_state == SUB_STATE_WRITE ) begin
-		if( size == 8 ) flag_pool_finish <= ( pooling_cnt == 7'd15 )? 1'b1 :1'b0;
-		else if( size == 16 ) flag_pool_finish <= ( pooling_cnt == 7'd63 )? 1'b1 :1'b0;
+	else if( cur_state == STATE_POOLING ) begin
+		if( size == 4 ) flag_pool_finish <= 1'b1;
+		else if( cur_pooling_state == SUB_STATE_WRITE ) begin
+			if( size == 8 ) flag_pool_finish <= ( pooling_cnt == 7'd15 )? 1'b1 :1'b0;
+			else if( size == 16 ) flag_pool_finish <= ( pooling_cnt == 7'd63 )? 1'b1 :1'b0;
+		end
+		else flag_pool_finish <= 0;
 	end
 	else flag_pool_finish <= 0;
 end
@@ -477,6 +570,7 @@ always@( * ) begin
 		finish_cross = ( inner_cnt == 6 )? 1'b1 : 1'b0 ;
 	SUB_STATE_MID: 		
 		finish_cross = ( inner_cnt == 9 )? 1'b1 : 1'b0 ;
+	default: finish_cross = 1'b0;
 	endcase
 end
 
@@ -504,226 +598,974 @@ always@( posedge clk or negedge rst_n ) begin
 end
 
 always@( * ) begin
+	case( cur_cross_state ) 
+	SUB_STATE_LEFT_TOP: begin
+		case( inner_cnt )
+		0: kernel = kernel_tmp[4];	
+		1: kernel = kernel_tmp[5];
+		2: kernel = kernel_tmp[7];
+		3: kernel = kernel_tmp[8];	
+		default: kernel = 'd0; 
+		endcase
+	end
+	SUB_STATE_TOP: begin
+		case( inner_cnt )
+		0: kernel = kernel_tmp[3];
+		1: kernel = kernel_tmp[4]; 
+		2: kernel = kernel_tmp[5];
+		3: kernel = kernel_tmp[6];
+		4: kernel = kernel_tmp[7];
+		5: kernel = kernel_tmp[8];
+		default: kernel = 'd0;
+		endcase
+	end
+	SUB_STATE_RIGHT_TOP: begin
+		case( inner_cnt )
+		0: kernel = kernel_tmp[3];
+		1: kernel = kernel_tmp[4];	
+		2: kernel = kernel_tmp[6];
+		3: kernel = kernel_tmp[7];
+		default: kernel = 'd0;
+		endcase
+	end
+	SUB_STATE_LEFT: begin
+		case( inner_cnt )
+		0: kernel = kernel_tmp[1];
+		1: kernel = kernel_tmp[2];
+		2: kernel = kernel_tmp[4];
+		3: kernel = kernel_tmp[5];
+		4: kernel = kernel_tmp[7]; 
+		5: kernel = kernel_tmp[8];
+		default: kernel = 'd0; 
+		endcase
+	end
+	SUB_STATE_MID: begin
+		case( inner_cnt ) 
+		0: kernel = kernel_tmp[0];
+		1: kernel = kernel_tmp[1]; 
+		2: kernel = kernel_tmp[2]; 
+		3: kernel = kernel_tmp[3];
+		4: kernel = kernel_tmp[4]; 
+		5: kernel = kernel_tmp[5]; 
+		6: kernel = kernel_tmp[6]; 
+		7: kernel = kernel_tmp[7]; 
+		8: kernel = kernel_tmp[8]; 
+		default: kernel = 'd0; 
+		endcase
+	end
+	SUB_STATE_RIGHT: begin
+		case( inner_cnt )
+		0: kernel = kernel_tmp[0];
+		1: kernel = kernel_tmp[1];
+		2: kernel = kernel_tmp[3]; 
+		3: kernel = kernel_tmp[4]; 
+		4: kernel = kernel_tmp[6]; 
+		5: kernel = kernel_tmp[7]; 
+		default: kernel = 'd0; 
+		endcase
+	end
+	SUB_STATE_LEFT_DOWN: begin 
+		case( inner_cnt )
+		0: kernel = kernel_tmp[1]; 
+		1: kernel = kernel_tmp[2]; 
+		2: kernel = kernel_tmp[4]; 
+		3: kernel = kernel_tmp[5]; 
+		default: kernel = 'd0; 
+		endcase
+	end
+	SUB_STATE_DOWN: begin // including RIGHT_DOWN corner case
+		case( inner_cnt )
+		0: kernel = kernel_tmp[0]; 
+		1: kernel = kernel_tmp[1]; 
+		2: kernel = kernel_tmp[2]; 
+		3: kernel = kernel_tmp[3]; 
+		4: kernel = kernel_tmp[4]; 
+		5: kernel = kernel_tmp[5]; 
+		default: kernel = 'd0; 
+		endcase
+	end
+	SUB_STATE_RIGHT_DOWN: begin
+		case( inner_cnt )
+		0: kernel = kernel_tmp[0]; 
+		1: kernel = kernel_tmp[1]; 
+		2: kernel = kernel_tmp[3]; 
+		3: kernel = kernel_tmp[4];
+		default: kernel = 'd0; 
+		endcase
+	end
+	default: kernel = 'd0; 
+	endcase
+end
+
+always@( * ) begin
 	if( cur_state == STATE_CROSS ) begin
 		case( cur_cross_state ) 
 		SUB_STATE_LEFT_TOP: begin
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[4];	cross_cnt = ans_addr+1;
+			case( flip ) 
+			0,15: begin
+				case( inner_cnt )
+				0: cross_cnt = ans_addr+1;
+				1: cross_cnt = ans_addr+size;
+				2: cross_cnt = ans_addr+size+1;				
+				3: cross_cnt = ans_addr;				
+				default: cross_cnt = 0;
+				endcase
 			end
-			1: begin 
-				kernel = kernel_tmp[5];	cross_cnt = ans_addr+size;
-			end
-			2: begin
-				kernel = kernel_tmp[7];	cross_cnt = ans_addr+size+1;				
-			end
-			3: begin
-				kernel = kernel_tmp[8];	cross_cnt = ans_addr;				
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt+size;
+				2: cross_cnt = tmp_cross_cnt+size-1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end			
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt-size;
+				2: cross_cnt = tmp_cross_cnt-size+1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end		
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-size;
+				2: cross_cnt = tmp_cross_cnt-size-1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end	
-			default: begin
-				kernel = 'd0; cross_cnt = 0;
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-1;
+				2: cross_cnt = tmp_cross_cnt-1-size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt-1;
+				2: cross_cnt = tmp_cross_cnt-1+size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt+1;
+				2: cross_cnt = tmp_cross_cnt+1-size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+1;
+				2: cross_cnt = tmp_cross_cnt+1+size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
 			endcase
 		end
 		SUB_STATE_TOP: begin
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[3]; cross_cnt = ans_addr;				
+			case( flip ) 
+			0,15: begin
+				case( inner_cnt )
+				0: cross_cnt = ans_addr;				
+				1: cross_cnt = ans_addr+1;				
+				2: cross_cnt = ans_addr+size-1;				
+				3: cross_cnt = ans_addr+size;				
+				4: cross_cnt = ans_addr+size+1;								
+				5: cross_cnt = ans_addr;
+				default: cross_cnt = ans_addr;
+				endcase
 			end
-			1: begin
-				kernel = kernel_tmp[4]; cross_cnt = ans_addr+1;				
-			end	
-			2: begin
-				kernel = kernel_tmp[5]; cross_cnt = ans_addr+size-1;				
-			end	
-			3: begin
-				kernel = kernel_tmp[6];	cross_cnt = ans_addr+size;				
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-2;
+				2: cross_cnt = tmp_cross_cnt+size;
+				3: cross_cnt = tmp_cross_cnt+size-1;				
+				4: cross_cnt = tmp_cross_cnt+size-2;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1;
+				endcase
 			end
-			4: begin
-				kernel = kernel_tmp[7]; cross_cnt = ans_addr+size+1;								
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt+2;
+				2: cross_cnt = tmp_cross_cnt-size;
+				3: cross_cnt = tmp_cross_cnt-size+1;				
+				4: cross_cnt = tmp_cross_cnt-size+2;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+1;
+				endcase
 			end
-			5: begin
-				kernel = kernel_tmp[8];	cross_cnt = ans_addr;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-2;
+				2: cross_cnt = tmp_cross_cnt-size;
+				3: cross_cnt = tmp_cross_cnt-size-1;				
+				4: cross_cnt = tmp_cross_cnt-size-2;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1;
+				endcase
 			end
-			default: begin
-				kernel = 'd0; cross_cnt = ans_addr;
-			end			
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-size-size;
+				2: cross_cnt = tmp_cross_cnt-1;
+				3: cross_cnt = tmp_cross_cnt-1-size;				
+				4: cross_cnt = tmp_cross_cnt-1-size-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size;
+				endcase
+			end
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+size+size;
+				2: cross_cnt = tmp_cross_cnt-1;
+				3: cross_cnt = tmp_cross_cnt-1+size;				
+				4: cross_cnt = tmp_cross_cnt-1+size+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size;
+				endcase
+			end
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-size-size;
+				2: cross_cnt = tmp_cross_cnt+1;
+				3: cross_cnt = tmp_cross_cnt+1-size;				
+				4: cross_cnt = tmp_cross_cnt+1-size-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+size+size;
+				2: cross_cnt = tmp_cross_cnt+1;
+				3: cross_cnt = tmp_cross_cnt+1+size;				
+				4: cross_cnt = tmp_cross_cnt+1+size+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size;
+				endcase
+			end
 			endcase
 		end
 		SUB_STATE_RIGHT_TOP: begin
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[3];	cross_cnt = ans_addr;
+			case( flip ) 
+			0,15: begin
+				case( inner_cnt )
+				0: cross_cnt = ans_addr;
+				1: cross_cnt = ans_addr+size-1;
+				2: cross_cnt = ans_addr+size;
+				3: cross_cnt = ans_addr;
+				default: cross_cnt = 0;
+				endcase
 			end
-			1: begin
-				kernel = kernel_tmp[4];	cross_cnt = ans_addr+size-1;
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt+size;
+				2: cross_cnt = tmp_cross_cnt+size-1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size-2;
+				endcase
 			end
-			2: begin
-				kernel = kernel_tmp[6];	cross_cnt = ans_addr+size;
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt-size;
+				2: cross_cnt = tmp_cross_cnt-size+1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size+2;
+				endcase
 			end
-			3: begin
-				kernel = kernel_tmp[7];	cross_cnt = ans_addr;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-size;
+				2: cross_cnt = tmp_cross_cnt-size-1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size-2;
+				endcase
 			end
-			default: begin
-				kernel = 'd0; cross_cnt = 0;
-			end	
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-1;
+				2: cross_cnt = tmp_cross_cnt-1-size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size-size;
+				endcase
+			end
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt-1;
+				2: cross_cnt = tmp_cross_cnt-1+size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size+size;
+				endcase
+			end
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt+1;
+				2: cross_cnt = tmp_cross_cnt+1-size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size-size;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+1;
+				2: cross_cnt = tmp_cross_cnt+1+size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size+size;
+				endcase
+			end			
 			endcase
 		end
 		SUB_STATE_LEFT: begin
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[1];	cross_cnt = ans_addr-size+1;
-				end
-			1: begin
-				kernel = kernel_tmp[2];	cross_cnt = ans_addr;
+			case( flip ) 
+			0,15: begin
+				case( inner_cnt )
+				0: cross_cnt = ans_addr-size+1;
+				1: cross_cnt = ans_addr;
+				2: cross_cnt = ans_addr+1;
+				3: cross_cnt = ans_addr+size;
+				4: cross_cnt = ans_addr+size+1;
+				5: cross_cnt = ans_addr;
+				default: cross_cnt = ans_addr-size;
+				endcase
 			end
-			2: begin
-				kernel = kernel_tmp[4];	cross_cnt = ans_addr+1;
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt+size;
+				2: cross_cnt = tmp_cross_cnt+size-1;
+				3: cross_cnt = tmp_cross_cnt+size+size;
+				4: cross_cnt = tmp_cross_cnt+size+size-1;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
-			3: begin
-				kernel = kernel_tmp[5];	cross_cnt = ans_addr+size;
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt-size;
+				2: cross_cnt = tmp_cross_cnt-size+1;
+				3: cross_cnt = tmp_cross_cnt-size-size;
+				4: cross_cnt = tmp_cross_cnt-size-size+1;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
-			4: begin
-				kernel = kernel_tmp[7]; cross_cnt = ans_addr+size+1;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-size;
+				2: cross_cnt = tmp_cross_cnt-size-1;
+				3: cross_cnt = tmp_cross_cnt-size-size;
+				4: cross_cnt = tmp_cross_cnt-size-size-1;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
-			5: begin
-				kernel = kernel_tmp[8];	cross_cnt = ans_addr;
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-1;
+				2: cross_cnt = tmp_cross_cnt-1-size;
+				3: cross_cnt = tmp_cross_cnt-2;
+				4: cross_cnt = tmp_cross_cnt-2-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
-			default: begin
-				kernel = 'd0; cross_cnt = ans_addr-size;
-			end		
-			endcase
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt-1;
+				2: cross_cnt = tmp_cross_cnt-1+size;
+				3: cross_cnt = tmp_cross_cnt-2;
+				4: cross_cnt = tmp_cross_cnt-2+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt+1;
+				2: cross_cnt = tmp_cross_cnt+1-size;
+				3: cross_cnt = tmp_cross_cnt+2;
+				4: cross_cnt = tmp_cross_cnt+2-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+1;
+				2: cross_cnt = tmp_cross_cnt+1+size;
+				3: cross_cnt = tmp_cross_cnt+2;
+				4: cross_cnt = tmp_cross_cnt+2+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			endcase			
 		end
 		SUB_STATE_MID: begin
-			case( inner_cnt ) 
-			0: begin
-				kernel = kernel_tmp[0]; cross_cnt = ans_addr-size;
+			case( flip ) 
+			0,15: begin		
+				case( inner_cnt ) 
+				0: cross_cnt = ans_addr-size;
+				1: cross_cnt = ans_addr-size+1;
+				2: cross_cnt = ans_addr-1;
+				3: cross_cnt = ans_addr;
+				4: cross_cnt = ans_addr+1;
+				5: cross_cnt = ans_addr+size-1;
+				6: cross_cnt = ans_addr+size;
+				7: cross_cnt = ans_addr+size+1;
+				8: cross_cnt = ans_addr;
+				default: cross_cnt = ans_addr-size;
+				endcase
 			end
-			1: begin
-				kernel = kernel_tmp[1]; cross_cnt = ans_addr-size+1;
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-2;
+				2: cross_cnt = tmp_cross_cnt+size;
+				3: cross_cnt = tmp_cross_cnt+size-1;
+				4: cross_cnt = tmp_cross_cnt+size-2;				
+				5: cross_cnt = tmp_cross_cnt+size+size;				
+				6: cross_cnt = tmp_cross_cnt+size+size-1;				
+				7: cross_cnt = tmp_cross_cnt+size+size-2;				
+				8: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1;
+				endcase
 			end
-			2: begin
-				kernel = kernel_tmp[2]; cross_cnt = ans_addr-1;
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt+2;
+				2: cross_cnt = tmp_cross_cnt-size;
+				3: cross_cnt = tmp_cross_cnt-size+1;
+				4: cross_cnt = tmp_cross_cnt-size+2;				
+				5: cross_cnt = tmp_cross_cnt-size-size;				
+				6: cross_cnt = tmp_cross_cnt-size-size+1;				
+				7: cross_cnt = tmp_cross_cnt-size-size+2;				
+				8: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+1;
+				endcase
 			end
-			3: begin
-				kernel = kernel_tmp[3]; cross_cnt = ans_addr;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-2;
+				2: cross_cnt = tmp_cross_cnt-size;
+				3: cross_cnt = tmp_cross_cnt-size-1;
+				4: cross_cnt = tmp_cross_cnt-size-2;				
+				5: cross_cnt = tmp_cross_cnt-size-size;				
+				6: cross_cnt = tmp_cross_cnt-size-size-1;				
+				7: cross_cnt = tmp_cross_cnt-size-size-2;				
+				8: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1;
+				endcase
 			end
-			4: begin
-				kernel = kernel_tmp[4]; cross_cnt = ans_addr+1;
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-size-size;
+				2: cross_cnt = tmp_cross_cnt-1;
+				3: cross_cnt = tmp_cross_cnt-1-size;
+				4: cross_cnt = tmp_cross_cnt-1-size-size;				
+				5: cross_cnt = tmp_cross_cnt-2;				
+				6: cross_cnt = tmp_cross_cnt-2-size;				
+				7: cross_cnt = tmp_cross_cnt-2-size-size;				
+				8: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size;
+				endcase
 			end
-			5: begin
-				kernel = kernel_tmp[5]; cross_cnt = ans_addr+size-1;
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+size+size;
+				2: cross_cnt = tmp_cross_cnt-1;
+				3: cross_cnt = tmp_cross_cnt-1+size;
+				4: cross_cnt = tmp_cross_cnt-1+size+size;				
+				5: cross_cnt = tmp_cross_cnt-2;				
+				6: cross_cnt = tmp_cross_cnt-2+size;				
+				7: cross_cnt = tmp_cross_cnt-2+size+size;				
+				8: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size;
+				endcase
 			end
-			6: begin
-				kernel = kernel_tmp[6]; cross_cnt = ans_addr+size;
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-size-size;
+				2: cross_cnt = tmp_cross_cnt+1;
+				3: cross_cnt = tmp_cross_cnt+1-size;
+				4: cross_cnt = tmp_cross_cnt+1-size-size;				
+				5: cross_cnt = tmp_cross_cnt+2;				
+				6: cross_cnt = tmp_cross_cnt+2-size;				
+				7: cross_cnt = tmp_cross_cnt+2-size-size;				
+				8: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size;
+				endcase
 			end
-			7: begin
-				kernel = kernel_tmp[7]; cross_cnt = ans_addr+size+1;
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+size+size;
+				2: cross_cnt = tmp_cross_cnt+1;
+				3: cross_cnt = tmp_cross_cnt+1+size;
+				4: cross_cnt = tmp_cross_cnt+1+size+size;				
+				5: cross_cnt = tmp_cross_cnt+2;				
+				6: cross_cnt = tmp_cross_cnt+2+size;				
+				7: cross_cnt = tmp_cross_cnt+2+size+size;				
+				8: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size;
+				endcase
 			end
-			8: begin
-				kernel = kernel_tmp[8]; cross_cnt = ans_addr;
-			end
-			default: begin
-				kernel = 'd0; cross_cnt = ans_addr-size;
-			end		
 			endcase
-			
 		end
 		SUB_STATE_RIGHT: begin
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[0]; cross_cnt = ans_addr-size;
+			case( flip ) 
+			0,15: begin		
+				case( inner_cnt )
+				0: cross_cnt = ans_addr-size;
+				1: cross_cnt = ans_addr-1;
+				2: cross_cnt = ans_addr;
+				3: cross_cnt = ans_addr+size-1;
+				4: cross_cnt = ans_addr+size;
+				5: cross_cnt = ans_addr;
+				default: cross_cnt = ans_addr-size+1;
+				endcase
 			end
-			1: begin
-				kernel = kernel_tmp[1]; cross_cnt = ans_addr-1;
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt+size;				
+				2: cross_cnt = tmp_cross_cnt+size-1;				
+				3: cross_cnt = tmp_cross_cnt+size+size;				
+				4: cross_cnt = tmp_cross_cnt+size+size-1;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size+size-2;
+				endcase
 			end
-			2: begin
-				kernel = kernel_tmp[3]; cross_cnt = ans_addr;
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt-size;				
+				2: cross_cnt = tmp_cross_cnt-size+1;				
+				3: cross_cnt = tmp_cross_cnt-size-size;				
+				4: cross_cnt = tmp_cross_cnt-size-size+1;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size-size+2;
+				endcase
 			end
-			3:begin
-				kernel = kernel_tmp[4]; cross_cnt = ans_addr+size-1;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-size;				
+				2: cross_cnt = tmp_cross_cnt-size-1;				
+				3: cross_cnt = tmp_cross_cnt-size-size;				
+				4: cross_cnt = tmp_cross_cnt-size-size-1;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-2;
+				endcase
 			end
-			4: begin
-				kernel = kernel_tmp[6]; cross_cnt = ans_addr+size;
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-1;				
+				2: cross_cnt = tmp_cross_cnt-1-size;				
+				3: cross_cnt = tmp_cross_cnt-2;				
+				4: cross_cnt = tmp_cross_cnt-2-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1-size-size;
+				endcase
 			end
-			5: begin
-				kernel = kernel_tmp[7]; cross_cnt = ans_addr;
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt-1;				
+				2: cross_cnt = tmp_cross_cnt-1+size;				
+				3: cross_cnt = tmp_cross_cnt-2;				
+				4: cross_cnt = tmp_cross_cnt-2+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1+size+size;
+				endcase
 			end
-			default: begin
-				kernel = 'd0; cross_cnt = ans_addr-size+1;
-			end		
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt+1;				
+				2: cross_cnt = tmp_cross_cnt+1-size;				
+				3: cross_cnt = tmp_cross_cnt+2;				
+				4: cross_cnt = tmp_cross_cnt+2-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+1-size-size;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+1;				
+				2: cross_cnt = tmp_cross_cnt+1+size;				
+				3: cross_cnt = tmp_cross_cnt+2;				
+				4: cross_cnt = tmp_cross_cnt+2+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+1+size+size;
+				endcase
+			end
 			endcase
 		end
 		SUB_STATE_LEFT_DOWN: begin 
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[1]; cross_cnt = ans_addr-size+1;
+			case( flip ) 
+			0,15: begin	
+				case( inner_cnt )
+				0: cross_cnt = ans_addr-size+1;
+				1: cross_cnt = ans_addr;
+				2: cross_cnt = ans_addr+1;
+				3: cross_cnt = ans_addr;
+				default: cross_cnt = ans_addr-size;
+				endcase
 			end
-			1: begin
-				kernel = kernel_tmp[2]; cross_cnt = ans_addr;
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt+size;				
+				2: cross_cnt = tmp_cross_cnt+size-1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
-			2: begin
-				kernel = kernel_tmp[4]; cross_cnt = ans_addr+1;
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt-size;				
+				2: cross_cnt = tmp_cross_cnt-size+1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
-			3: begin
-				kernel = kernel_tmp[5]; cross_cnt = ans_addr;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-size;				
+				2: cross_cnt = tmp_cross_cnt-size-1;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
 			end
-			default: begin
-				kernel = 'd0; cross_cnt = ans_addr-size;
-			end		
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-1;				
+				2: cross_cnt = tmp_cross_cnt-1-size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt-1;				
+				2: cross_cnt = tmp_cross_cnt-1+size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt+1;				
+				2: cross_cnt = tmp_cross_cnt+1-size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+1;				
+				2: cross_cnt = tmp_cross_cnt+1+size;				
+				3: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt;
+				endcase
+			end
 			endcase
 		end
-		SUB_STATE_DOWN: begin // including RIGHT_DOWN corner case
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[0]; cross_cnt = ans_addr-size;
+		SUB_STATE_DOWN: begin 
+			case( flip ) 
+			0,15: begin	
+				case( inner_cnt )
+				0: cross_cnt = ans_addr-size;
+				1: cross_cnt = ans_addr-size+1;
+				2: cross_cnt = ans_addr-1;
+				3: cross_cnt = ans_addr;
+				4: cross_cnt = ans_addr+1;
+				5: cross_cnt = ans_addr;
+				default: cross_cnt = ans_addr-size;
+				endcase
 			end
-			1: begin
-				kernel = kernel_tmp[1]; cross_cnt = ans_addr-size+1;
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-2;				
+				2: cross_cnt = tmp_cross_cnt+size;				
+				3: cross_cnt = tmp_cross_cnt+size-1;				
+				4: cross_cnt = tmp_cross_cnt+size-2;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1;
+				endcase
 			end
-			2: begin
-				kernel = kernel_tmp[2]; cross_cnt = ans_addr-1;
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt+2;				
+				2: cross_cnt = tmp_cross_cnt-size;				
+				3: cross_cnt = tmp_cross_cnt-size+1;				
+				4: cross_cnt = tmp_cross_cnt-size+2;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+1;
+				endcase
 			end
-			3: begin
-				kernel = kernel_tmp[3]; cross_cnt = ans_addr;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-2;				
+				2: cross_cnt = tmp_cross_cnt-size;				
+				3: cross_cnt = tmp_cross_cnt-size-1;				
+				4: cross_cnt = tmp_cross_cnt-size-2;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-1;
+				endcase
 			end
-			4: begin
-				kernel = kernel_tmp[4]; cross_cnt = ans_addr+1;
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-size-size;				
+				2: cross_cnt = tmp_cross_cnt-1;				
+				3: cross_cnt = tmp_cross_cnt-1-size;				
+				4: cross_cnt = tmp_cross_cnt-1-size-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size;
+				endcase
 			end
-			5: begin
-				kernel = kernel_tmp[5]; cross_cnt = ans_addr;
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+size+size;				
+				2: cross_cnt = tmp_cross_cnt-1;				
+				3: cross_cnt = tmp_cross_cnt-1+size;				
+				4: cross_cnt = tmp_cross_cnt-1+size+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size;
+				endcase
 			end
-			default: begin
-				kernel = 'd0; cross_cnt = ans_addr-size;
-			end		
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-size-size;				
+				2: cross_cnt = tmp_cross_cnt+1;				
+				3: cross_cnt = tmp_cross_cnt+1-size;				
+				4: cross_cnt = tmp_cross_cnt+1-size-size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt-size;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+size+size;				
+				2: cross_cnt = tmp_cross_cnt+1;				
+				3: cross_cnt = tmp_cross_cnt+1+size;				
+				4: cross_cnt = tmp_cross_cnt+1+size+size;				
+				5: cross_cnt = tmp_cross_cnt;				
+				default: cross_cnt = tmp_cross_cnt+size;
+				endcase
+			end
 			endcase
 		end
 		SUB_STATE_RIGHT_DOWN: begin
-			case( inner_cnt )
-			0: begin
-				kernel = kernel_tmp[0]; cross_cnt = ans_addr-size;
+			case( flip ) 
+			0,15: begin
+				case( inner_cnt )
+				0: cross_cnt = ans_addr-size;
+				1: cross_cnt = ans_addr-1;
+				2: cross_cnt = ans_addr;
+				3: cross_cnt = ans_addr;
+				default: cross_cnt = 0;
+				endcase
 			end
-			1: begin
-				kernel = kernel_tmp[1]; cross_cnt = ans_addr-1;
+			1,14: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt+size;				
+				2: cross_cnt = tmp_cross_cnt+size-1;				
+				3: cross_cnt = tmp_cross_cnt;								
+				default: cross_cnt = 0;
+				endcase
 			end
-			2: begin
-				kernel = kernel_tmp[3]; cross_cnt = ans_addr;
+			2,13: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+1;
+				1: cross_cnt = tmp_cross_cnt-size;				
+				2: cross_cnt = tmp_cross_cnt-size+1;				
+				3: cross_cnt = tmp_cross_cnt;								
+				default: cross_cnt = 0;
+				endcase
 			end
-			3: begin
-				kernel = kernel_tmp[4]; cross_cnt = ans_addr;
+			3,12: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-1;
+				1: cross_cnt = tmp_cross_cnt-size;				
+				2: cross_cnt = tmp_cross_cnt-size-1;				
+				3: cross_cnt = tmp_cross_cnt;								
+				default: cross_cnt = 0;
+				endcase
 			end
-			default: begin
-				kernel = 'd0; cross_cnt = 0;
-			end		
+			4,11: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt-1;				
+				2: cross_cnt = tmp_cross_cnt-1-size;				
+				3: cross_cnt = tmp_cross_cnt;								
+				default: cross_cnt = 0;
+				endcase
+			end
+			5,10: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt-1;				
+				2: cross_cnt = tmp_cross_cnt-1+size;				
+				3: cross_cnt = tmp_cross_cnt;								
+				default: cross_cnt = 0;
+				endcase
+			end
+			6,9: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt-size;
+				1: cross_cnt = tmp_cross_cnt+1;				
+				2: cross_cnt = tmp_cross_cnt+1-size;				
+				3: cross_cnt = tmp_cross_cnt;								
+				default: cross_cnt = 0;
+				endcase
+			end
+			7,8: begin
+				case( inner_cnt )
+				0: cross_cnt = tmp_cross_cnt+size;
+				1: cross_cnt = tmp_cross_cnt+1;				
+				2: cross_cnt = tmp_cross_cnt+1+size;				
+				3: cross_cnt = tmp_cross_cnt;								
+				default: cross_cnt = 0;
+				endcase
+			end
 			endcase
 		end
-		default: begin
-			kernel = 'd0; cross_cnt = 0;
-		end		
+		default: cross_cnt = 0;
 		endcase
 	end
-	else begin
-		kernel = 'd0; cross_cnt = 0;
+	else if( cur_state == STATE_CROSS_BEFORE ) begin
+		case(flip)
+		0,7,8,15: cross_cnt = 0;
+		1,5,10,14: cross_cnt = size - 1;
+		2,6,9,13: cross_cnt = size * ( size - 1 );
+		3,4,11,12: cross_cnt = size * size - 1;
+		default: cross_cnt = 0;
+		endcase
+	end
+	else cross_cnt = 0;
+end
+
+always@( posedge clk or negedge rst_n ) begin
+	if( !rst_n ) tmp_cross_cnt <= 0;
+	else if( cur_state == STATE_CROSS_BEFORE ) tmp_cross_cnt <= cross_cnt;
+	else if( cur_state == STATE_CROSS ) begin
+		case( cur_cross_state )
+		SUB_STATE_RIGHT_TOP: begin
+			if( inner_cnt == 4 ) begin
+				case(flip)
+				7,8: tmp_cross_cnt <= 0;
+				1,5,10,14: tmp_cross_cnt <= size - 1;
+				2,6,9,13: tmp_cross_cnt <= size * ( size - 1 );
+				3,4,11,12: tmp_cross_cnt <= size * size - 1;
+				endcase	
+			end
+		end
+		SUB_STATE_RIGHT_DOWN: begin
+			if( inner_cnt == 4 ) tmp_cross_cnt <= 0;
+		end
+		SUB_STATE_RIGHT : begin
+			if( inner_cnt == 6 ) begin
+				case(flip)
+				1,14: tmp_cross_cnt <= tmp_cross_cnt + size + size - 2;
+				2,13: tmp_cross_cnt <= tmp_cross_cnt - size - size + 2;
+				3,12: tmp_cross_cnt <= tmp_cross_cnt - 2;
+				4,11: tmp_cross_cnt <= tmp_cross_cnt - 1 - size - size;
+				5,10: tmp_cross_cnt <= tmp_cross_cnt - 1 + size + size;
+				6,9: tmp_cross_cnt <= tmp_cross_cnt + 1 - size - size;
+				7,8: tmp_cross_cnt <= tmp_cross_cnt + 1 + size + size;
+				endcase	
+			end
+		end
+		SUB_STATE_TOP: begin
+			if( inner_cnt == 6 ) begin
+				case( flip ) 
+				1,3,12,14: tmp_cross_cnt <= tmp_cross_cnt - 1 ;					
+				2,13: tmp_cross_cnt <= tmp_cross_cnt + 1 ;					
+				4,6,9,11: tmp_cross_cnt <= tmp_cross_cnt - size ;					
+				5,7,8,10: tmp_cross_cnt <= tmp_cross_cnt + size ;									
+				endcase
+			end
+		end
+		SUB_STATE_DOWN: begin
+			if( inner_cnt == 6 ) begin
+				case( flip ) 
+				1,3,12,14: tmp_cross_cnt <= tmp_cross_cnt - 1 ;					
+				2,13: tmp_cross_cnt <= tmp_cross_cnt + 1 ;					
+				4,6,9,11: tmp_cross_cnt <= tmp_cross_cnt - size ;					
+				5,10: tmp_cross_cnt <= tmp_cross_cnt + 1 ;	
+				7,8: tmp_cross_cnt <= tmp_cross_cnt + size ;		
+				endcase
+			end
+		end
+		SUB_STATE_MID: begin
+			if( inner_cnt == 9 ) begin
+				case( flip ) 
+				1,3,12,14: tmp_cross_cnt <= tmp_cross_cnt - 1 ;					
+				2,13: tmp_cross_cnt <= tmp_cross_cnt + 1 ;
+				4,6,9,11: tmp_cross_cnt <= tmp_cross_cnt - size ;
+				5,7,8,10: tmp_cross_cnt <= tmp_cross_cnt + size ;
+				endcase
+			end
+		end
+		endcase
 	end
 end
 
@@ -942,55 +1784,57 @@ end
 //================================================================
 //	FSM
 //================================================================
+// global state
 always@( posedge clk or negedge rst_n ) begin
 	if( !rst_n ) cur_state <= STATE_IDLE;
 	else cur_state <= nx_state;
 end
 always@( * ) begin
 	case( cur_state ) 
-	STATE_IDLE: nx_state = STATE_INPUT;
-	STATE_INPUT: begin
+	STATE_IDLE: begin
 		if( flag == 1'b1 && in_valid_2 == 1'b0 ) begin
 			case( act[0] ) 
 			0: nx_state = STATE_CROSS_BEFORE;
 			1: nx_state = STATE_POOLING;
+			2,3,4,5: nx_state = STATE_FLIP;
 			6: nx_state = STATE_ZOOMIN;
 			7: nx_state = STATE_ADJUST;
 			default: nx_state = STATE_IDLE;
 			endcase
 		end
-		else nx_state = STATE_INPUT;
+		else nx_state = STATE_IDLE;
 	end
 	STATE_CROSS: nx_state = ( flag_cross_finish )? STATE_OUTPUT : STATE_CROSS ; 
 	STATE_CROSS_BEFORE: nx_state = STATE_CROSS;
 	STATE_ZOOMIN:begin
-		if( size == 16 ) begin
+		if( flag_zoom_finish ) begin
 			case( act[0] ) 
 			0: nx_state = STATE_CROSS_BEFORE;
 			1: nx_state = STATE_POOLING;
+			2,3,4,5: nx_state = STATE_FLIP;
 			6: nx_state = STATE_ZOOMIN;
 			7: nx_state = STATE_ADJUST;
 			default: nx_state = STATE_IDLE;
 			endcase
 		end
-		else begin
-			if( flag_zoom_finish ) begin
-				case( act[0] ) 
-				0: nx_state = STATE_CROSS_BEFORE;
-				1: nx_state = STATE_POOLING;
-				6: nx_state = STATE_ZOOMIN;
-				7: nx_state = STATE_ADJUST;
-				default: nx_state = STATE_IDLE;
-				endcase
-			end
-			else nx_state = STATE_ZOOMIN;
-		end
+		else nx_state = STATE_ZOOMIN;
 	end
-	STATE_ADJUST: begin
+	STATE_FLIP: begin
+		case( act[0] ) 
+		0: nx_state = STATE_CROSS_BEFORE;
+		1: nx_state = STATE_POOLING;
+		2,3,4,5: nx_state = STATE_FLIP;
+		6: nx_state = STATE_ZOOMIN;
+		7: nx_state = STATE_ADJUST;
+		default: nx_state = STATE_IDLE;
+		endcase
+	end
+	STATE_ADJUST: begin 
 		if( flag_adj_finish ) begin
 			case( act[0] ) 
 			0: nx_state = STATE_CROSS_BEFORE;
 			1: nx_state = STATE_POOLING;
+			2,3,4,5: nx_state = STATE_FLIP;
 			6: nx_state = STATE_ZOOMIN;
 			7: nx_state = STATE_ADJUST;
 			default: nx_state = STATE_IDLE;
@@ -999,19 +1843,11 @@ always@( * ) begin
 		else nx_state = STATE_ADJUST;
 	end
 	STATE_POOLING: begin
-		if( size == 4 ) begin
+		if( flag_pool_finish ) begin
 			case( act[0] ) 
 			0: nx_state = STATE_CROSS_BEFORE;
 			1: nx_state = STATE_POOLING;
-			6: nx_state = STATE_ZOOMIN;
-			7: nx_state = STATE_ADJUST;
-			default: nx_state = STATE_IDLE;
-			endcase
-		end
-		else if( flag_pool_finish ) begin
-			case( act[0] ) 
-			0: nx_state = STATE_CROSS_BEFORE;
-			1: nx_state = STATE_POOLING;
+			2,3,4,5: nx_state = STATE_FLIP;
 			6: nx_state = STATE_ZOOMIN;
 			7: nx_state = STATE_ADJUST;
 			default: nx_state = STATE_IDLE;
