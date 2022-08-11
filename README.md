@@ -8,3 +8,4 @@
 - Lab4: Neural Network
 - Lab5: Template Matching With Image Processing
 - Lab6: Check Sum
+- Lab7: Clock Domain Crossing
