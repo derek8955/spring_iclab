@@ -12,3 +12,4 @@
 - Lab10: Image Display Control 
 - Lab11: Local Binary Pattern APR I
 - Lab12: Digit matching machine APR II
+
